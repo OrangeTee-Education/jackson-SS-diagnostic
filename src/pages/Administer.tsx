@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QUESTIONS } from "../../shared/diagnostic";
-import { ApiError, createSession, evaluateSession } from "../lib/api";
+import { ApiError, createSession } from "../lib/api";
+import { runEvaluation } from "../lib/runEvaluation";
 
 export default function Administer() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function Administer() {
   const [answers, setAnswers] = useState<string[]>(() => Array(QUESTIONS.length).fill(""));
   const [step, setStep] = useState(0); // 0 = intro, 1..24 = questions, 25 = review
   const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const totalSteps = QUESTIONS.length;
@@ -32,11 +34,12 @@ export default function Administer() {
         answerText: answers[i],
       }));
       const id = await createSession(studentName, payload);
-      await evaluateSession(id);
+      await runEvaluation(id, setProgress);
       navigate(`/sessions/${id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong submitting the diagnostic.");
       setSubmitting(false);
+      setProgress(null);
     }
   }
 
@@ -119,12 +122,13 @@ export default function Administer() {
           ))}
         </ol>
         {error && <p className="error">{error}</p>}
+        {progress && <p className="muted">{progress}</p>}
         <div className="button-row">
           <button className="secondary" onClick={() => setStep(totalSteps)} disabled={submitting}>
             Back
           </button>
           <button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Evaluating… this can take up to a minute" : "Submit for Evaluation"}
+            {submitting ? "Evaluating…" : "Submit for Evaluation"}
           </button>
         </div>
       </div>

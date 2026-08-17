@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
-import { evaluateSession, getSession, type SessionDetail } from "../lib/api";
+import { getSession, type SessionDetail } from "../lib/api";
+import { runEvaluation } from "../lib/runEvaluation";
 
 export default function Results() {
   const { id } = useParams<{ id: string }>();
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reevaluating, setReevaluating] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -24,12 +26,13 @@ export default function Results() {
     setReevaluating(true);
     setError(null);
     try {
-      await evaluateSession(id);
+      await runEvaluation(id, setProgress);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Evaluation failed.");
     } finally {
       setReevaluating(false);
+      setProgress(null);
     }
   }
 
@@ -70,6 +73,7 @@ export default function Results() {
         </div>
       </header>
 
+      {progress && <p className="muted">{progress}</p>}
       {!data && !reevaluating && <p className="muted">No evaluation yet.</p>}
 
       {data && (

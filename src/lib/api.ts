@@ -1,4 +1,12 @@
-import type { DiagnosticReport } from "../../shared/diagnostic";
+import type {
+  ConceptMap,
+  DiagnosticReport,
+  DomainInterpretation,
+  FollowUpProbe,
+  InstructionalImplications,
+  PerQuestionEvaluation,
+  RankedMisconception,
+} from "../../shared/diagnostic";
 
 export class ApiError extends Error {
   status: number;
@@ -77,7 +85,46 @@ export async function getSession(id: string): Promise<SessionDetail> {
   return apiFetch<SessionDetail>(`/api/sessions/${id}`);
 }
 
-export async function evaluateSession(id: string): Promise<ReportRow> {
-  const data = await apiFetch<{ report: ReportRow }>(`/api/sessions/${id}/evaluate`, { method: "POST" });
+export async function evaluateBatch(id: string, questionNumbers: number[]): Promise<PerQuestionEvaluation[]> {
+  const data = await apiFetch<{ evaluations: PerQuestionEvaluation[] }>(`/api/sessions/${id}/evaluate-batch`, {
+    method: "POST",
+    body: JSON.stringify({ questionNumbers }),
+  });
+  return data.evaluations;
+}
+
+export interface SummaryAResult {
+  concept_map: ConceptMap;
+  domain_interpretation: DomainInterpretation[];
+}
+
+export async function evaluateSummaryA(id: string): Promise<SummaryAResult> {
+  return apiFetch<SummaryAResult>(`/api/sessions/${id}/evaluate-summary-a`, { method: "POST" });
+}
+
+export interface SummaryBResult {
+  top_misconceptions: RankedMisconception[];
+  followup_probes: FollowUpProbe[];
+  instructional_implications: InstructionalImplications;
+}
+
+export async function evaluateSummaryB(id: string): Promise<SummaryBResult> {
+  return apiFetch<SummaryBResult>(`/api/sessions/${id}/evaluate-summary-b`, { method: "POST" });
+}
+
+export async function finalizeReport(
+  id: string,
+  parts: {
+    conceptMap: ConceptMap;
+    domainInterpretation: DomainInterpretation[];
+    topMisconceptions: RankedMisconception[];
+    followupProbes: FollowUpProbe[];
+    instructionalImplications: InstructionalImplications;
+  }
+): Promise<ReportRow> {
+  const data = await apiFetch<{ report: ReportRow }>(`/api/sessions/${id}/finalize-report`, {
+    method: "POST",
+    body: JSON.stringify(parts),
+  });
   return data.report;
 }
