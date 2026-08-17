@@ -24,7 +24,10 @@ export default async (req: Request) => {
       .from("sessions")
       .select("id, student_name, status, created_at")
       .order("created_at", { ascending: false });
-    if (error) return json({ error: error.message }, 500);
+    if (error) {
+      console.error("[sessions:GET]", error);
+      return json({ error: error.message }, 500);
+    }
     return json({ sessions: data });
   }
 
