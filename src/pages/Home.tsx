@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listSessions, type SessionSummary } from "../lib/api";
-import { useAuth } from "../lib/auth";
 
 export default function Home() {
-  const { logout } = useAuth();
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,9 +20,6 @@ export default function Home() {
           <Link to="/new" className="button">
             + New Diagnostic Session
           </Link>
-          <button className="secondary" onClick={logout}>
-            Log out
-          </button>
         </div>
       </header>
 

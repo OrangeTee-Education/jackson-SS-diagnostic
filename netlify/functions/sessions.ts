@@ -1,5 +1,4 @@
 import type { Config } from "@netlify/functions";
-import { requireAuth } from "../lib/auth";
 import { getSupabaseClient, json } from "../lib/supabase";
 
 interface SubmittedAnswer {
@@ -10,8 +9,6 @@ interface SubmittedAnswer {
 }
 
 export default async (req: Request) => {
-  if (!requireAuth(req)) return json({ error: "Unauthorized" }, 401);
-
   let supabase;
   try {
     supabase = getSupabaseClient();

@@ -60,15 +60,13 @@ tiny (one call per evaluation run) — a few cents at most per diagnostic.
 3. Go to **Site configuration → Environment variables** and add:
    | Key | Value |
    |---|---|
-   | `APP_PASSCODE` | a passcode you choose |
-   | `APP_SECRET` | a long random string (see `.env.example` for how to generate one) |
    | `SUPABASE_URL` | from step 1 |
    | `SUPABASE_SERVICE_ROLE_KEY` | from step 1 |
    | `ANTHROPIC_API_KEY` | from step 2 |
    | `ANTHROPIC_MODEL` | `claude-sonnet-5` (optional, this is the default) |
 4. Trigger a redeploy so the functions pick up the new environment variables
    (**Deploys → Trigger deploy**).
-5. Open the site URL, enter your passcode, and you're in.
+5. Open the site URL — there's no login, it goes straight to the app.
 
 ## Local development
 
@@ -101,9 +99,12 @@ routes as production) at `http://localhost:8888`.
 
 ## Security notes
 
-- The app is gated by a single shared passcode (`APP_PASSCODE`). There's no
-  per-user accounts — it's meant for one family's private use.
+- **There is no login.** The site URL is unlisted but public — anyone with
+  the link can view or add diagnostic sessions. This was a deliberate
+  tradeoff for convenience over an earlier passcode gate; revisit if that
+  stops being an acceptable tradeoff (e.g. add Netlify's built-in Password
+  Protection, or reinstate an app-level passcode).
 - The Supabase service role key and Anthropic API key are only ever used
   inside Netlify Functions (server-side); the browser never sees them.
 - Supabase tables have RLS enabled with zero public policies, so even if the
-  `anon` key ever leaked, it couldn't read or write anything.
+  `anon`/publishable key ever leaked, it couldn't read or write anything.

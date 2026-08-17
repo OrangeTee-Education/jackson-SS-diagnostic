@@ -1,9 +1,7 @@
 import type { Config, Context } from "@netlify/functions";
-import { requireAuth } from "../lib/auth";
 import { getSupabaseClient, json } from "../lib/supabase";
 
 export default async (req: Request, context: Context) => {
-  if (!requireAuth(req)) return json({ error: "Unauthorized" }, 401);
   if (req.method !== "GET") return json({ error: "Method Not Allowed" }, 405);
 
   const id = context.params.id;
