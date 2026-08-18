@@ -100,6 +100,7 @@ export default async (req: Request, context: Context) => {
       maxTokens: 1200,
     })) as { evaluations: Array<Record<string, unknown>> };
   } catch (err) {
+    console.error(`[evaluate-batch] questions ${questionNumbers.join(",")}`, err);
     return json({ error: err instanceof Error ? err.message : "Evaluation failed." }, 502);
   }
 

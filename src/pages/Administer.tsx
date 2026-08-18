@@ -50,7 +50,13 @@ export default function Administer() {
           <h1>New Diagnostic Session</h1>
           <label className="field">
             Student name
-            <input value={studentName} onChange={(e) => setStudentName(e.target.value)} />
+            <input
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && studentName.trim()) setStep(1);
+              }}
+            />
           </label>
           <p className="muted">
             You'll go through {totalSteps} questions one at a time. Type the answer as close to verbatim as
@@ -88,7 +94,13 @@ export default function Administer() {
             rows={8}
             value={answers[step - 1]}
             onChange={(e) => updateAnswer(step - 1, e.target.value)}
-            placeholder="Type the answer as close to verbatim as possible…"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                setStep(step + 1);
+              }
+            }}
+            placeholder="Type the answer as close to verbatim as possible… (Enter to continue, Shift+Enter for a new line)"
           />
           <div className="button-row">
             <button className="secondary" onClick={() => setStep(step - 1)}>

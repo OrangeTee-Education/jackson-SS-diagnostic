@@ -82,6 +82,7 @@ export default async (req: Request, context: Context) => {
     });
     return json(result);
   } catch (err) {
+    console.error("[evaluate-summary-b]", err);
     return json({ error: err instanceof Error ? err.message : "Evaluation failed." }, 502);
   }
 };

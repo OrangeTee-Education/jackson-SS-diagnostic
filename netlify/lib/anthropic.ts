@@ -13,6 +13,20 @@ interface ToolDefinition {
   input_schema: Record<string, unknown>;
 }
 
+// A bare `fetch()` throw (as opposed to an HTTP error response) means the
+// connection itself failed — DNS blip, connection reset, etc. That's worth
+// one quick retry since it's usually transient; a short delay so we don't
+// eat into the 10-second function budget.
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err) {
+    console.error("[anthropic] fetch failed, retrying once:", err);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return fetch(url, init);
+  }
+}
+
 export async function callAnthropicTool(params: {
   system: string;
   userMessage: string;
@@ -22,7 +36,7 @@ export async function callAnthropicTool(params: {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY environment variable.");
 
-  const res = await fetch(ANTHROPIC_API_URL, {
+  const res = await fetchWithRetry(ANTHROPIC_API_URL, {
     method: "POST",
     headers: {
       "content-type": "application/json",
