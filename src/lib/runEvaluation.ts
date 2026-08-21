@@ -14,28 +14,32 @@ function withStepContext<T>(label: string, promise: Promise<T>): Promise<T> {
 // Netlify's free-tier functions hard-timeout at 10 seconds, and a single
 // call covering all 24 questions (or the full five-part summary) reliably
 // takes longer than that.
-export async function runEvaluation(sessionId: string, onProgress: (message: string) => void): Promise<ReportRow> {
+export async function runEvaluation(
+  sessionId: string,
+  code: string,
+  onProgress: (message: string) => void
+): Promise<ReportRow> {
   for (let start = 1; start <= TOTAL_QUESTIONS; start += BATCH_SIZE) {
     const end = Math.min(start + BATCH_SIZE - 1, TOTAL_QUESTIONS);
     const label = `Grading questions ${start}-${end} of ${TOTAL_QUESTIONS}`;
     onProgress(`${label}…`);
     const questionNumbers = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    await withStepContext(label, evaluateBatch(sessionId, questionNumbers));
+    await withStepContext(label, evaluateBatch(sessionId, code, questionNumbers));
   }
 
   onProgress("Summarizing concept map and domains…");
-  const partA = await withStepContext("Summarizing concept map and domains", evaluateSummaryA(sessionId));
+  const partA = await withStepContext("Summarizing concept map and domains", evaluateSummaryA(sessionId, code));
 
   onProgress("Summarizing misconceptions and instructional plan…");
   const partB = await withStepContext(
     "Summarizing misconceptions and instructional plan",
-    evaluateSummaryB(sessionId)
+    evaluateSummaryB(sessionId, code)
   );
 
   onProgress("Finishing up…");
   return withStepContext(
     "Finishing up",
-    finalizeReport(sessionId, {
+    finalizeReport(sessionId, code, {
       conceptMap: partA.concept_map,
       domainInterpretation: partA.domain_interpretation,
       topMisconceptions: partB.top_misconceptions,

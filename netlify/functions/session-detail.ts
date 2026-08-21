@@ -1,5 +1,6 @@
 import type { Config, Context } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
+import { getAccessCode, requireSessionOwner } from "../lib/auth";
 
 export default async (req: Request, context: Context) => {
   if (req.method !== "GET") return json({ error: "Method Not Allowed" }, 405);
@@ -13,6 +14,9 @@ export default async (req: Request, context: Context) => {
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : "Server misconfiguration." }, 500);
   }
+
+  const student = await requireSessionOwner(supabase, id, getAccessCode(req));
+  if (!student) return json({ error: "Invalid access code." }, 403);
 
   const [sessionRes, answersRes, reportRes] = await Promise.all([
     supabase.from("sessions").select("*").eq("id", id).single(),

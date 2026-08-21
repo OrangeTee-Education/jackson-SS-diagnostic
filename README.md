@@ -1,7 +1,17 @@
-# Jackson Social Studies Diagnostic
+# OrangeTee Labs
+
+The site root (`/`) is a landing page listing the diagnostic apps hosted
+here; each app lives at its own path so the domain isn't monopolized by a
+single diagnostic. Add future apps as additional routes in
+[`src/App.tsx`](src/App.tsx) plus a card in
+[`src/pages/Landing.tsx`](src/pages/Landing.tsx).
+
+## Social Studies Diagnostic (`/social-studies`)
 
 A small web app for administering the 24-question conceptual social studies
-diagnostic and getting it evaluated automatically.
+diagnostic and getting it evaluated automatically. Supports multiple
+students — each gets their own access code, and only that code can see or
+add to their sessions.
 
 - **Frontend**: React + Vite, hosted on **Netlify**.
 - **Backend**: Netlify Functions (serverless).
@@ -26,11 +36,12 @@ tiny (one call per evaluation run) — a few cents at most per diagnostic.
 ### 1. Supabase (database)
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. In the SQL Editor, run the contents of
-   [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
-   This creates `sessions`, `answers`, and `reports` tables with row-level
-   security enabled and no public policies — only server-side requests using
-   the service role key can touch them.
+2. In the SQL Editor, run the contents of each file in
+   [`supabase/migrations/`](supabase/migrations/), in order (`0001` through
+   `0004`). Together they create `students`, `sessions`, `answers`,
+   `reports`, and `question_evaluations`, all with row-level security
+   enabled and no public policies — only server-side requests using the
+   service role key can touch them.
 3. Go to **Project Settings → API** and copy:
    - **Project URL** → `SUPABASE_URL`
    - **service_role** key (not the `anon` key) → `SUPABASE_SERVICE_ROLE_KEY`
@@ -66,7 +77,9 @@ tiny (one call per evaluation run) — a few cents at most per diagnostic.
    | `ANTHROPIC_MODEL` | `claude-sonnet-5` (optional, this is the default) |
 4. Trigger a redeploy so the functions pick up the new environment variables
    (**Deploys → Trigger deploy**).
-5. Open the site URL — there's no login, it goes straight to the app.
+5. Open the site URL. It lands on the OrangeTee Labs landing page; open the
+   Social Studies Diagnostic from there, then either enter an existing
+   student's access code or create a new student.
 
 ## Local development
 
@@ -81,30 +94,42 @@ routes as production) at `http://localhost:8888`.
 
 ## How it works
 
-1. **Administer** (`/new`) walks through the 24 questions and collects
-   Jackson's answers verbatim.
-2. On submit, the answers are saved to Supabase (`sessions` + `answers`
-   tables), then the app calls the `evaluate` function.
-3. `evaluate` pulls the 24 answers, sends them to the Anthropic API with the
+1. **Student gate** (`/social-studies`) is the entry point. Enter an
+   existing student's access code, or create a new student to get one.
+   Codes are remembered in the browser (`localStorage`) so you don't have
+   to re-enter them on the same device.
+2. **Student home** (`/social-studies/students/:studentId`) lists that
+   student's past sessions, scoped to their code.
+3. **Administer** (`/social-studies/students/:studentId/new`) walks through
+   the 24 questions and collects the student's answers verbatim.
+4. On submit, the answers are saved to Supabase (`sessions` + `answers`
+   tables, linked to the student), then the app calls the `evaluate`
+   function.
+5. `evaluate` pulls the 24 answers, sends them to the Anthropic API with the
    full rubric as the system prompt, and forces a structured JSON response
    (via tool use) matching the five required outputs plus a per-question
    breakdown. The result is saved to the `reports` table.
-4. **Results** (`/sessions/:id`) renders the five outputs (Concept Map,
-   Domain-Level Interpretation, Most Important Misconceptions, Adaptive
-   Follow-Up Probes, Instructional Implications) plus a per-question detail
-   table and the raw transcript. You can re-run the evaluation at any time
-   (e.g. after editing the rubric) with **Re-run evaluation**.
-5. **Home** (`/`) lists all past sessions so you can revisit earlier runs —
-   useful for tracking Jackson's progress over multiple diagnostics.
+6. **Results** (`/social-studies/students/:studentId/sessions/:id`) renders
+   the five outputs (Concept Map, Domain-Level Interpretation, Most
+   Important Misconceptions, Adaptive Follow-Up Probes, Instructional
+   Implications) plus a per-question detail table and the raw transcript.
+   You can re-run the evaluation at any time (e.g. after editing the
+   rubric) with **Re-run evaluation**.
+7. **Compare** (`/social-studies/students/:studentId/compare`) tracks a
+   student's results across administrations, question by question.
 
 ## Security notes
 
-- **There is no login.** The site URL is unlisted but public — anyone with
-  the link can view or add diagnostic sessions. This was a deliberate
-  tradeoff for convenience over an earlier passcode gate; revisit if that
-  stops being an acceptable tradeoff (e.g. add Netlify's built-in Password
-  Protection, or reinstate an app-level passcode).
+- **Access is by per-student code, not a full login.** Each student gets a
+  6-character code at creation; anyone with that code can view or add to
+  that student's sessions, but not other students'. Codes aren't hashed at
+  rest — this is a lightweight privacy boundary between families sharing
+  the same site, not protection against a determined attacker. If that
+  stops being an acceptable tradeoff, add real authentication (e.g.
+  Netlify Identity or Supabase Auth).
 - The Supabase service role key and Anthropic API key are only ever used
   inside Netlify Functions (server-side); the browser never sees them.
 - Supabase tables have RLS enabled with zero public policies, so even if the
-  `anon`/publishable key ever leaked, it couldn't read or write anything.
+  `anon`/publishable key ever leaked, it couldn't read or write anything —
+  all access goes through the Netlify Functions, which enforce the
+  access-code check server-side on every request.

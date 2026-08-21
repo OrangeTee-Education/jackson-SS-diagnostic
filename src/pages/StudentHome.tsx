@@ -1,35 +1,37 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { listSessions, type SessionSummary } from "../lib/api";
+import { getRememberedStudent } from "../lib/studentAuth";
 
-function groupByStudent(sessions: SessionSummary[]): Array<[string, SessionSummary[]]> {
-  const groups = new Map<string, SessionSummary[]>();
-  for (const s of sessions) {
-    const list = groups.get(s.student_name) ?? [];
-    list.push(s);
-    groups.set(s.student_name, list);
-  }
-  return Array.from(groups.entries());
-}
+export default function StudentHome() {
+  const { studentId } = useParams<{ studentId: string }>();
+  const remembered = studentId ? getRememberedStudent(studentId) : null;
 
-export default function Home() {
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    listSessions()
+    if (!studentId || !remembered) return;
+    listSessions(studentId, remembered.code)
       .then(setSessions)
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load sessions."));
-  }, []);
+  }, [studentId, remembered?.code]);
 
-  const groups = sessions ? groupByStudent(sessions) : [];
+  if (!studentId || !remembered) {
+    return <Navigate to="/social-studies" replace />;
+  }
 
   return (
     <div className="page">
       <header className="page-header">
-        <h1>Jackson Social Studies Diagnostic</h1>
+        <div>
+          <Link to="/social-studies" className="back-link">
+            ← Switch student
+          </Link>
+          <h1>{remembered.name}</h1>
+        </div>
         <div className="button-row">
-          <Link to="/new" className="button">
+          <Link to={`/social-studies/students/${studentId}/new`} className="button">
             + New Diagnostic Session
           </Link>
         </div>
@@ -41,21 +43,20 @@ export default function Home() {
         <p className="muted">No sessions yet. Start a new diagnostic session above.</p>
       )}
 
-      {groups.map(([studentName, studentSessions]) => (
-        <section key={studentName} className="report-section">
+      {sessions && sessions.length > 0 && (
+        <section className="report-section">
           <div className="page-header">
-            <h2>{studentName}</h2>
-            {studentSessions.length > 1 && (
-              <Link to={`/compare?student=${encodeURIComponent(studentName)}`} className="button secondary">
-                Compare {studentSessions.length} administrations
+            <h2>Sessions</h2>
+            {sessions.length > 1 && (
+              <Link to={`/social-studies/students/${studentId}/compare`} className="button secondary">
+                Compare {sessions.length} administrations
               </Link>
             )}
           </div>
           <ul className="session-list">
-            {studentSessions.map((s) => (
+            {sessions.map((s) => (
               <li key={s.id}>
-                <Link to={`/sessions/${s.id}`}>
-                  <span className="session-name">{s.student_name}</span>
+                <Link to={`/social-studies/students/${studentId}/sessions/${s.id}`}>
                   <span className={`badge badge-${s.status}`}>
                     {s.status === "evaluated" ? "Evaluated" : "In progress"}
                   </span>
@@ -65,7 +66,7 @@ export default function Home() {
             ))}
           </ul>
         </section>
-      ))}
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Config, Context } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
+import { getAccessCode, requireSessionOwner } from "../lib/auth";
 import { callAnthropicTool } from "../lib/anthropic";
 import { fetchGradedQuestions, formatGradedQuestions } from "../lib/gradedQuestions";
 import { SYNTHESIS_PART_B_INSTRUCTIONS } from "../../shared/diagnostic";
@@ -71,6 +72,9 @@ export default async (req: Request, context: Context) => {
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : "Server misconfiguration." }, 500);
   }
+
+  const student = await requireSessionOwner(supabase, id, getAccessCode(req));
+  if (!student) return json({ error: "Invalid access code." }, 403);
 
   try {
     const graded = await fetchGradedQuestions(supabase, id);

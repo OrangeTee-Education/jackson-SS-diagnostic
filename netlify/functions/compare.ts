@@ -1,5 +1,6 @@
 import type { Config } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
+import { getAccessCode, requireStudent } from "../lib/auth";
 import { QUESTIONS } from "../../shared/diagnostic";
 
 interface ComparisonSession {
@@ -24,8 +25,8 @@ export default async (req: Request) => {
   if (req.method !== "GET") return json({ error: "Method Not Allowed" }, 405);
 
   const url = new URL(req.url);
-  const student = url.searchParams.get("student")?.trim();
-  if (!student) return json({ error: "Missing student query parameter." }, 400);
+  const studentId = url.searchParams.get("studentId")?.trim();
+  if (!studentId) return json({ error: "Missing studentId query parameter." }, 400);
 
   let supabase;
   try {
@@ -34,17 +35,20 @@ export default async (req: Request) => {
     return json({ error: err instanceof Error ? err.message : "Server misconfiguration." }, 500);
   }
 
+  const student = await requireStudent(supabase, studentId, getAccessCode(req));
+  if (!student) return json({ error: "Invalid access code." }, 403);
+
   const { data: sessions, error: sessionsError } = await supabase
     .from("sessions")
     .select("id, created_at, status")
-    .eq("student_name", student)
+    .eq("student_id", studentId)
     .order("created_at", { ascending: true });
 
   if (sessionsError) return json({ error: sessionsError.message }, 500);
 
   const sessionList = (sessions ?? []) as ComparisonSession[];
   if (sessionList.length === 0) {
-    return json({ student, sessions: [], rows: [] });
+    return json({ student: student.name, sessions: [], rows: [] });
   }
 
   const sessionIds = sessionList.map((s) => s.id);
@@ -70,7 +74,7 @@ export default async (req: Request) => {
     cells: sessionList.map((s) => bySessionAndQuestion.get(`${s.id}:${q.number}`) ?? null),
   }));
 
-  return json({ student, sessions: sessionList, rows });
+  return json({ student: student.name, sessions: sessionList, rows });
 };
 
 export const config: Config = { path: "/api/compare" };
