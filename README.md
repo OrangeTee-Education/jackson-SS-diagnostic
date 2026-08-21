@@ -1,4 +1,12 @@
-# Jackson Social Studies Diagnostic
+# OrangeTee Labs
+
+The site root (`/`) is a landing page listing the diagnostic apps hosted
+here; each app lives at its own path so the domain isn't monopolized by a
+single diagnostic. Add future apps as additional routes in
+[`src/App.tsx`](src/App.tsx) plus a card in
+[`src/pages/Landing.tsx`](src/pages/Landing.tsx).
+
+## Jackson Social Studies Diagnostic (`/social-studies`)
 
 A small web app for administering the 24-question conceptual social studies
 diagnostic and getting it evaluated automatically.
@@ -66,7 +74,8 @@ tiny (one call per evaluation run) — a few cents at most per diagnostic.
    | `ANTHROPIC_MODEL` | `claude-sonnet-5` (optional, this is the default) |
 4. Trigger a redeploy so the functions pick up the new environment variables
    (**Deploys → Trigger deploy**).
-5. Open the site URL — there's no login, it goes straight to the app.
+5. Open the site URL — there's no login. It lands on the OrangeTee Labs
+   landing page; open the Social Studies Diagnostic from there.
 
 ## Local development
 
@@ -81,21 +90,23 @@ routes as production) at `http://localhost:8888`.
 
 ## How it works
 
-1. **Administer** (`/new`) walks through the 24 questions and collects
-   Jackson's answers verbatim.
+1. **Administer** (`/social-studies/new`) walks through the 24 questions and
+   collects Jackson's answers verbatim.
 2. On submit, the answers are saved to Supabase (`sessions` + `answers`
    tables), then the app calls the `evaluate` function.
 3. `evaluate` pulls the 24 answers, sends them to the Anthropic API with the
    full rubric as the system prompt, and forces a structured JSON response
    (via tool use) matching the five required outputs plus a per-question
    breakdown. The result is saved to the `reports` table.
-4. **Results** (`/sessions/:id`) renders the five outputs (Concept Map,
-   Domain-Level Interpretation, Most Important Misconceptions, Adaptive
-   Follow-Up Probes, Instructional Implications) plus a per-question detail
-   table and the raw transcript. You can re-run the evaluation at any time
-   (e.g. after editing the rubric) with **Re-run evaluation**.
-5. **Home** (`/`) lists all past sessions so you can revisit earlier runs —
-   useful for tracking Jackson's progress over multiple diagnostics.
+4. **Results** (`/social-studies/sessions/:id`) renders the five outputs
+   (Concept Map, Domain-Level Interpretation, Most Important
+   Misconceptions, Adaptive Follow-Up Probes, Instructional Implications)
+   plus a per-question detail table and the raw transcript. You can re-run
+   the evaluation at any time (e.g. after editing the rubric) with
+   **Re-run evaluation**.
+5. **App home** (`/social-studies`) lists all past sessions so you can
+   revisit earlier runs — useful for tracking Jackson's progress over
+   multiple diagnostics.
 
 ## Security notes
 

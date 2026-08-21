@@ -40,7 +40,7 @@ export default function Results() {
     return (
       <div className="page">
         <p className="error">{error}</p>
-        <Link to="/">Back home</Link>
+        <Link to="/social-studies">Back home</Link>
       </div>
     );
   }
@@ -64,7 +64,7 @@ export default function Results() {
           <p className="muted">{new Date(session.created_at).toLocaleString()}</p>
         </div>
         <div className="button-row no-print">
-          <Link to="/" className="button secondary">
+          <Link to="/social-studies" className="button secondary">
             Back
           </Link>
           {data && (

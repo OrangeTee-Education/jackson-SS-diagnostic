@@ -21,7 +21,7 @@ export default function Compare() {
     return (
       <div className="page">
         <p className="error">No student specified.</p>
-        <Link to="/">Back home</Link>
+        <Link to="/social-studies">Back home</Link>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export default function Compare() {
           <p className="muted">Same 24-question instrument, tracked by question over time.</p>
         </div>
         <div className="button-row no-print">
-          <Link to="/" className="button secondary">
+          <Link to="/social-studies" className="button secondary">
             Back
           </Link>
           {result && result.sessions.length > 0 && (
@@ -68,7 +68,9 @@ export default function Compare() {
                   <th>Question</th>
                   {result.sessions.map((s) => (
                     <th key={s.id}>
-                      <Link to={`/sessions/${s.id}`}>{new Date(s.created_at).toLocaleDateString()}</Link>
+                      <Link to={`/social-studies/sessions/${s.id}`}>
+                        {new Date(s.created_at).toLocaleDateString()}
+                      </Link>
                     </th>
                   ))}
                 </tr>

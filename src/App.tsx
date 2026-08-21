@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Administer from "./pages/Administer";
 import Results from "./pages/Results";
@@ -8,10 +9,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/new" element={<Administer />} />
-        <Route path="/sessions/:id" element={<Results />} />
-        <Route path="/compare" element={<Compare />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/social-studies" element={<Home />} />
+        <Route path="/social-studies/new" element={<Administer />} />
+        <Route path="/social-studies/sessions/:id" element={<Results />} />
+        <Route path="/social-studies/compare" element={<Compare />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

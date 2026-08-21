@@ -35,7 +35,7 @@ export default function Administer() {
       }));
       const id = await createSession(studentName, payload);
       await runEvaluation(id, setProgress);
-      navigate(`/sessions/${id}`);
+      navigate(`/social-studies/sessions/${id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong submitting the diagnostic.");
       setSubmitting(false);

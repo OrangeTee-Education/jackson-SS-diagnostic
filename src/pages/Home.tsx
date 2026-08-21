@@ -27,9 +27,14 @@ export default function Home() {
   return (
     <div className="page">
       <header className="page-header">
-        <h1>Jackson Social Studies Diagnostic</h1>
+        <div>
+          <Link to="/" className="back-link">
+            ← OrangeTee Labs
+          </Link>
+          <h1>Jackson Social Studies Diagnostic</h1>
+        </div>
         <div className="button-row">
-          <Link to="/new" className="button">
+          <Link to="/social-studies/new" className="button">
             + New Diagnostic Session
           </Link>
         </div>
@@ -46,7 +51,10 @@ export default function Home() {
           <div className="page-header">
             <h2>{studentName}</h2>
             {studentSessions.length > 1 && (
-              <Link to={`/compare?student=${encodeURIComponent(studentName)}`} className="button secondary">
+              <Link
+                to={`/social-studies/compare?student=${encodeURIComponent(studentName)}`}
+                className="button secondary"
+              >
                 Compare {studentSessions.length} administrations
               </Link>
             )}
@@ -54,7 +62,7 @@ export default function Home() {
           <ul className="session-list">
             {studentSessions.map((s) => (
               <li key={s.id}>
-                <Link to={`/sessions/${s.id}`}>
+                <Link to={`/social-studies/sessions/${s.id}`}>
                   <span className="session-name">{s.student_name}</span>
                   <span className={`badge badge-${s.status}`}>
                     {s.status === "evaluated" ? "Evaluated" : "In progress"}
