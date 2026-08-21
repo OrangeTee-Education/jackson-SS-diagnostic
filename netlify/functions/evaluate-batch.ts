@@ -2,7 +2,7 @@ import type { Config, Context } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
 import { getAccessCode, requireSessionOwner } from "../lib/auth";
 import { callAnthropicTool } from "../lib/anthropic";
-import { GENERAL_INSTRUCTIONS, QUESTION_RUBRICS } from "../../shared/diagnostic";
+import { generalInstructions, QUESTION_RUBRICS } from "../../shared/diagnostic";
 
 const BATCH_TOOL = {
   name: "submit_question_evaluations",
@@ -82,7 +82,7 @@ export default async (req: Request, context: Context) => {
     return json({ error: "Could not find all requested answers for this session." }, 400);
   }
 
-  const system = `${GENERAL_INSTRUCTIONS}\n\nScoring guidance for the question(s) below:\n\n${questionNumbers
+  const system = `${generalInstructions(student.name)}\n\nScoring guidance for the question(s) below:\n\n${questionNumbers
     .map((n) => QUESTION_RUBRICS[n])
     .join("\n\n")}`;
 

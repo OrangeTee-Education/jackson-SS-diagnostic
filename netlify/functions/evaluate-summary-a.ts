@@ -3,7 +3,7 @@ import { getSupabaseClient, json } from "../lib/supabase";
 import { getAccessCode, requireSessionOwner } from "../lib/auth";
 import { callAnthropicTool } from "../lib/anthropic";
 import { fetchGradedQuestions, formatGradedQuestions } from "../lib/gradedQuestions";
-import { SYNTHESIS_PART_A_INSTRUCTIONS } from "../../shared/diagnostic";
+import { synthesisPartAInstructions } from "../../shared/diagnostic";
 
 const TOOL = {
   name: "submit_concept_map_and_domains",
@@ -60,7 +60,7 @@ export default async (req: Request, context: Context) => {
   try {
     const graded = await fetchGradedQuestions(supabase, id);
     const result = await callAnthropicTool({
-      system: SYNTHESIS_PART_A_INSTRUCTIONS,
+      system: synthesisPartAInstructions(student.name),
       userMessage: formatGradedQuestions(graded),
       tool: TOOL,
       maxTokens: 1800,
