@@ -400,3 +400,57 @@ button.secondary:hover,
 .tag-U {
   background: var(--unknown);
 }
+
+.compare-table-wrap {
+  overflow-x: auto;
+}
+
+.compare-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+}
+
+.compare-table th,
+.compare-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.compare-table th {
+  white-space: nowrap;
+}
+
+.compare-cell-empty {
+  color: var(--muted);
+}
+
+@media print {
+  body {
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .report-section,
+  .card {
+    border: 1px solid var(--border);
+    break-inside: avoid;
+  }
+
+  .per-question-table tr,
+  .compare-table tr {
+    break-inside: avoid;
+  }
+}

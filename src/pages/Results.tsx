@@ -63,17 +63,22 @@ export default function Results() {
           <h1>{session.student_name}</h1>
           <p className="muted">{new Date(session.created_at).toLocaleString()}</p>
         </div>
-        <div className="button-row">
+        <div className="button-row no-print">
           <Link to="/" className="button secondary">
             Back
           </Link>
+          {data && (
+            <button className="secondary" onClick={() => window.print()}>
+              Print / Save as PDF
+            </button>
+          )}
           <button onClick={handleReevaluate} disabled={reevaluating}>
             {reevaluating ? "Evaluating…" : report ? "Re-run evaluation" : "Run evaluation"}
           </button>
         </div>
       </header>
 
-      {progress && <p className="muted">{progress}</p>}
+      {progress && <p className="muted no-print">{progress}</p>}
       {!data && !reevaluating && <p className="muted">No evaluation yet.</p>}
 
       {data && (

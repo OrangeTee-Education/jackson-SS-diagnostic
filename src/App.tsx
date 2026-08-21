@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Administer from "./pages/Administer";
 import Results from "./pages/Results";
+import Compare from "./pages/Compare";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/new" element={<Administer />} />
         <Route path="/sessions/:id" element={<Results />} />
+        <Route path="/compare" element={<Compare />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

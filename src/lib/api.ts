@@ -112,6 +112,34 @@ export async function evaluateSummaryB(id: string): Promise<SummaryBResult> {
   return apiFetch<SummaryBResult>(`/api/sessions/${id}/evaluate-summary-b`, { method: "POST" });
 }
 
+export interface ComparisonSession {
+  id: string;
+  created_at: string;
+  status: "in_progress" | "evaluated";
+}
+
+export interface ComparisonCell {
+  session_id: string;
+  classification: "S" | "P" | "M" | "U";
+  summary: string;
+}
+
+export interface ComparisonRow {
+  question_number: number;
+  question_title: string;
+  cells: Array<ComparisonCell | null>;
+}
+
+export interface ComparisonResult {
+  student: string;
+  sessions: ComparisonSession[];
+  rows: ComparisonRow[];
+}
+
+export async function getComparison(studentName: string): Promise<ComparisonResult> {
+  return apiFetch<ComparisonResult>(`/api/compare?student=${encodeURIComponent(studentName)}`);
+}
+
 export async function finalizeReport(
   id: string,
   parts: {
