@@ -227,39 +227,42 @@ export const QUESTIONS: DiagnosticQuestion[] = [
 ];
 
 // General classification rules, used as the system-prompt prefix for every
-// batch grading call.
-export const GENERAL_INSTRUCTIONS = `You are evaluating answers from a broad conceptual social studies diagnostic given to a 13-year-old named Jackson, who has had limited and inconsistent social studies instruction.
+// batch grading call. A function of the student's name so the same rubric
+// works for any student, not just one hardcoded child.
+export function generalInstructions(studentName: string): string {
+  return `You are evaluating answers from a broad conceptual social studies diagnostic given to ${studentName}, a student who has had limited and inconsistent social studies instruction.
 
-You will be given one or more of Jackson's answers, as close to verbatim as possible, each with its question and scoring guidance.
+You will be given one or more of ${studentName}'s answers, as close to verbatim as possible, each with its question and scoring guidance.
 
-Your job is not to calculate a percentage score or grade level. Your job is to infer his underlying conceptual model and classify the concepts demonstrated by each answer.
+Your job is not to calculate a percentage score or grade level. Your job is to infer their underlying conceptual model and classify the concepts demonstrated by each answer.
 
 Use these classifications:
 
-- S — Secure: Jackson demonstrates the essential concept correctly and can reason with it in the situation presented. He does not need to use formal social-studies vocabulary.
-- P — Partial: Jackson has an important piece of the correct model, but it is incomplete, overly narrow, vague, or cannot yet be applied reliably.
-- M — Misconception: Jackson demonstrates a specific incorrect model that will need to be replaced or reconstructed. Do not use M merely because he lacks knowledge.
-- U — Unknown / Missing: Jackson says he does not know, gives no usable answer, or his answer provides insufficient evidence that he has a mental model of the concept.
+- S — Secure: ${studentName} demonstrates the essential concept correctly and can reason with it in the situation presented. They do not need to use formal social-studies vocabulary.
+- P — Partial: ${studentName} has an important piece of the correct model, but it is incomplete, overly narrow, vague, or cannot yet be applied reliably.
+- M — Misconception: ${studentName} demonstrates a specific incorrect model that will need to be replaced or reconstructed. Do not use M merely because they lack knowledge.
+- U — Unknown / Missing: ${studentName} says they do not know, gives no usable answer, or their answer provides insufficient evidence that they have a mental model of the concept.
 
 Important evaluation rules:
 
-1. Judge conceptual understanding, not vocabulary. If Jackson describes an empire correctly but does not know the word empire, that may still be Secure. If he knows the word federalism but cannot explain the idea, that is not Secure.
+1. Judge conceptual understanding, not vocabulary. If ${studentName} describes an empire correctly but does not know the word empire, that may still be Secure. If they know the word federalism but cannot explain the idea, that is not Secure.
 2. Do not penalize awkward wording, incomplete sentences, minor arithmetic errors, or difficulty remembering names or dates, unless that is the concept actually being tested.
 3. Distinguish missing knowledge from misconception. "I don't know what Congress does" = U. "Congress is a court that decides whether people are guilty" = M.
 4. A response can provide evidence about multiple concepts.
 5. Do not force an answer into S/P/M/U if it is genuinely ambiguous — flag it as needing a follow-up probe instead.
-6. Do not teach or correct Jackson in your evaluation — just classify.
+6. Do not teach or correct ${studentName} in your evaluation — just classify.
 
 For each question you're given, produce: the most appropriate S/P/M/U classification, a one-sentence summary of what the answer tells us, which concepts it provides evidence about, any specific misconception revealed (or null), and whether a follow-up probe is warranted. Keep every field concise — this is a compact classification, not an essay.`;
+}
 
 // One scoring-guidance block per question, keyed by question number. Batch
 // calls only include the blocks for the questions in that batch.
 export const QUESTION_RUBRICS: Record<number, string> = {
   1: `Question 1 — Maps as Representations
 Question: Imagine two maps show exactly the same city. One shows roads and highways. The other shows rainfall and temperature. Why might the two maps look very different even though they show the same place?
-S — Secure: Jackson recognizes that maps can represent the same place while selecting or emphasizing different kinds of information for different purposes. Examples: "One is showing roads and one is showing weather." "Maps don't show everything; they show whatever information they're supposed to show." "They have different purposes."
-P — Partial: He recognizes that the information differs but does not quite articulate that maps are selective representations. Example: "Because one has roads and the other has rain." This may be enough for basic understanding but does not yet establish the broader map-representation concept.
-M — Misconception: He indicates that maps of the same place should normally look identical or assumes one of the maps must be wrong because they differ.
+S — Secure: The student recognizes that maps can represent the same place while selecting or emphasizing different kinds of information for different purposes. Examples: "One is showing roads and one is showing weather." "Maps don't show everything; they show whatever information they're supposed to show." "They have different purposes."
+P — Partial: They recognize that the information differs but do not quite articulate that maps are selective representations. Example: "Because one has roads and the other has rain." This may be enough for basic understanding but does not yet establish the broader map-representation concept.
+M — Misconception: They indicate that maps of the same place should normally look identical or assume one of the maps must be wrong because they differ.
 U — Unknown: No usable explanation or "I don't know."
 Primary concepts: maps as representations; map purpose; symbols/information selection.`,
   2: `Question 2 — Direction and Orientation
@@ -267,11 +270,11 @@ Question: Suppose Town B is directly west of Town A. If you travel from Town B t
 S — Secure: East.
 P — Partial: Shows understanding after reasoning aloud but confuses the direction initially, or demonstrates a shaky east/west model.
 M — Misconception: Consistently reverses east and west or reveals another systematic directional misunderstanding.
-U — Unknown: Does not know. Do not require an explanation if he answers correctly.
+U — Unknown: Does not know. Do not require an explanation if they answer correctly.
 Primary concept: direction and orientation.`,
   3: `Question 3 — Rivers and Early Civilization
 Question: Many early civilizations developed near large rivers. Why do you think living near a large river could make it easier for a civilization to develop?
-S — Secure: Identifies one or more meaningful mechanisms such as reliable water, fertile soil/farming, food production, transportation, trade, supporting larger populations. Especially strong evidence if he connects the mechanism into a causal chain, such as "Water makes farming easier, so you can feed more people and build a larger settlement." He does not need to mention all possible advantages.
+S — Secure: Identifies one or more meaningful mechanisms such as reliable water, fertile soil/farming, food production, transportation, trade, supporting larger populations. Especially strong evidence if they connect the mechanism into a causal chain, such as "Water makes farming easier, so you can feed more people and build a larger settlement." They do not need to mention all possible advantages.
 P — Partial: Recognizes that rivers are useful but gives only a vague or narrow reason: "They need water." "Rivers are good for people." This demonstrates part of the model but not yet how geography supports civilization.
 M — Misconception: Attributes civilization development to an incorrect causal mechanism and clearly treats it as the main explanation.
 U — Unknown: No usable model.
@@ -313,7 +316,7 @@ U — Unknown: No usable response.
 Primary concepts: multiple causation; historical explanation.`,
   9: `Question 9 — Perspective and Interpretation
 Question: Two people witnessed the same protest. One later writes: "The crowd was dangerous and out of control." The other writes: "The crowd was peaceful and the police treated them unfairly." How could two people who saw the same event describe it so differently?
-S — Secure: Recognizes that perspective, position, beliefs, experiences, interests, or what each person observed can affect interpretation. He does not need to conclude that one person is lying.
+S — Secure: Recognizes that perspective, position, beliefs, experiences, interests, or what each person observed can affect interpretation. They do not need to conclude that one person is lying.
 P — Partial: Recognizes that people can have different opinions but does not yet explain why perspectives differ.
 M — Misconception: Assumes that if accounts differ, one must necessarily be intentionally lying, with no model of perspective or interpretation.
 U — Unknown: Cannot explain the difference.
@@ -378,7 +381,7 @@ Primary concepts: Constitution; rule of law; limited government.`,
 Question: Imagine one person in government could make the laws, enforce the laws, and decide whether someone had broken those laws. Why might it be safer to divide those powers among different parts of government?
 S — Secure: Understands that dividing power can prevent abuse, provide oversight, or prevent one person/group from controlling everything. Naming the three branches is not required.
 P — Partial: Senses division is safer but cannot explain the mechanism.
-M — Misconception: Believes separation means dividing government simply to make work easier, with no understanding that limiting concentrated power is part of the purpose. This may be P rather than M if he simply knows only the efficiency aspect.
+M — Misconception: Believes separation means dividing government simply to make work easier, with no understanding that limiting concentrated power is part of the purpose. This may be P rather than M if they simply know only the efficiency aspect.
 U — Unknown: No usable concept.
 Primary concepts: separation of powers; checks and balances; limited government.`,
   19: `Question 19 — Federalism
@@ -418,7 +421,7 @@ U — Unknown: Cannot describe what is occurring.
 Primary concepts: empire; conquest; political control; resistance; collective identity.`,
   24: `Question 24 — Industrialization and Historical Change
 Question: A society begins using machines in factories that allow a small number of workers to produce far more goods than people previously made by hand. What kinds of changes do you think that could cause in the society?
-S — Secure: Can reason outward from the technological change to at least one substantial social/economic consequence. Possible examples: goods become cheaper/more plentiful, factory jobs increase, people move to cities, occupations change, production increases, working conditions change, transportation/trade expand, some older jobs disappear, wealth or social relationships change. He does not need prior factual knowledge of the Industrial Revolution.
+S — Secure: Can reason outward from the technological change to at least one substantial social/economic consequence. Possible examples: goods become cheaper/more plentiful, factory jobs increase, people move to cities, occupations change, production increases, working conditions change, transportation/trade expand, some older jobs disappear, wealth or social relationships change. They do not need prior factual knowledge of the Industrial Revolution.
 P — Partial: Recognizes that "they could make more things" but cannot reason beyond the immediate production effect.
 M — Misconception: Shows a specific incompatible causal model — for example, believing increased productive technology necessarily means society will produce fewer goods because fewer workers are required.
 U — Unknown: Cannot predict any meaningful consequence.
@@ -428,16 +431,20 @@ Primary concepts: industrialization; technology; economic change; social change;
 // Synthesis calls work from the already-graded per-question data (not the
 // raw rubric), so their prompts are much smaller and stay well under the
 // per-call time limit. Split into two so neither call has to produce too
-// much prose in one shot.
-export const SYNTHESIS_PART_A_INSTRUCTIONS = `You previously classified Jackson's answers to all 24 questions of a social studies diagnostic (S = Secure, P = Partial, M = Misconception, U = Unknown/Missing). You will be given that full list of 24 per-question classifications, each with the concepts it provided evidence about and any misconception detail.
+// much prose in one shot. Both are functions of the student's name so the
+// same rubric works for any student.
+export function synthesisPartAInstructions(studentName: string): string {
+  return `You previously classified ${studentName}'s answers to all 24 questions of a social studies diagnostic (S = Secure, P = Partial, M = Misconception, U = Unknown/Missing). You will be given that full list of 24 per-question classifications, each with the concepts it provided evidence about and any misconception detail.
 
 Do not provide an overall percentage or grade level. Using only the classifications provided, produce two outputs and return them ONLY via the submit_concept_map_and_domains tool call (no other prose).
 
-1. Concept Map: organize the concepts evidenced across all 24 answers under Secure, Partial, Misconceptions, Unknown/Missing, and Insufficient Evidence. For every misconception, state it specifically (concept name, then what incorrect model Jackson appears to hold) rather than just a bare label. Keep each entry to one line.
+1. Concept Map: organize the concepts evidenced across all 24 answers under Secure, Partial, Misconceptions, Unknown/Missing, and Insufficient Evidence. For every misconception, state it specifically (concept name, then what incorrect model ${studentName} appears to hold) rather than just a bare label. Keep each entry to one line.
 
-2. Domain-Level Interpretation: summarize his current picture across these nine domains, as a 2-3 sentence prose description of the structure of his knowledge in that domain (not an averaged score) — synthesize across whichever of the 24 questions are relevant to each domain: Maps & spatial thinking; Physical & human geography; Historical time & historical reasoning; Societies, culture & belief; Government, law & political power; U.S. civics & constitutional government; Economics, resources & trade; Interaction between peoples & societies; Big patterns of historical change.`;
+2. Domain-Level Interpretation: summarize their current picture across these nine domains, as a 2-3 sentence prose description of the structure of their knowledge in that domain (not an averaged score) — synthesize across whichever of the 24 questions are relevant to each domain: Maps & spatial thinking; Physical & human geography; Historical time & historical reasoning; Societies, culture & belief; Government, law & political power; U.S. civics & constitutional government; Economics, resources & trade; Interaction between peoples & societies; Big patterns of historical change.`;
+}
 
-export const SYNTHESIS_PART_B_INSTRUCTIONS = `You previously classified Jackson's answers to all 24 questions of a social studies diagnostic (S = Secure, P = Partial, M = Misconception, U = Unknown/Missing). You will be given that full list of 24 per-question classifications, each with the concepts it provided evidence about and any misconception detail.
+export function synthesisPartBInstructions(studentName: string): string {
+  return `You previously classified ${studentName}'s answers to all 24 questions of a social studies diagnostic (S = Secure, P = Partial, M = Misconception, U = Unknown/Missing). You will be given that full list of 24 per-question classifications, each with the concepts it provided evidence about and any misconception detail.
 
 Using only the classifications provided, produce three outputs and return them ONLY via the submit_misconceptions_and_plan tool call (no other prose). Keep every field to 1-2 sentences.
 
@@ -447,4 +454,5 @@ Using only the classifications provided, produce three outputs and return them O
 
 3. Preliminary Instructional Implications: identify likely prerequisite concepts that should be taught first, areas that may need little or no initial instruction, misconceptions that should be explicitly reconstructed, and any concepts that should be probed further before deciding. Teaching order should follow prerequisite relationships, not conventional grade-level sequence (e.g. geography → resources → settlement → civilizations → trade → empires; chronology → cause/effect → multiple causation → historical change; government → authority/law → limits on power → Constitution → separation of powers → federalism/elections; scarcity → specialization → trade → markets → supply/demand).
 
-The long-term purpose of this diagnostic is to discover the smallest set of foundational social-studies concepts Jackson needs to build a coherent framework for later history, geography, civics, economics, and current events.`;
+The long-term purpose of this diagnostic is to discover the smallest set of foundational social-studies concepts ${studentName} needs to build a coherent framework for later history, geography, civics, economics, and current events.`;
+}
