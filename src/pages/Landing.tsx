@@ -11,7 +11,7 @@ const APPS: AppCard[] = [
   {
     title: "Social Studies Diagnostic",
     description:
-      "24-question conceptual diagnostic for Jackson, with automatic S/P/M/U evaluation, per-question detail, and cross-administration comparison.",
+      "24-question conceptual diagnostic with automatic S/P/M/U evaluation, per-question detail, and cross-administration comparison. Each student's results are private to their own access code.",
     path: "/social-studies",
     status: "live",
   },
@@ -23,7 +23,7 @@ export default function Landing() {
       <header className="page-header">
         <div>
           <h1>OrangeTee Labs</h1>
-          <p className="muted">Diagnostic tools for Jackson.</p>
+          <p className="muted">Diagnostic tools.</p>
         </div>
       </header>
 

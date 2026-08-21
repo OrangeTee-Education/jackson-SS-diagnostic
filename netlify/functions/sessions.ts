@@ -1,5 +1,6 @@
 import type { Config } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
+import { getAccessCode, requireStudent } from "../lib/auth";
 
 interface SubmittedAnswer {
   number: number;
@@ -16,10 +17,19 @@ export default async (req: Request) => {
     return json({ error: err instanceof Error ? err.message : "Server misconfiguration." }, 500);
   }
 
+  const code = getAccessCode(req);
+
   if (req.method === "GET") {
+    const studentId = new URL(req.url).searchParams.get("studentId");
+    if (!studentId) return json({ error: "Missing studentId." }, 400);
+
+    const student = await requireStudent(supabase, studentId, code);
+    if (!student) return json({ error: "Invalid access code." }, 403);
+
     const { data, error } = await supabase
       .from("sessions")
       .select("id, student_name, status, created_at")
+      .eq("student_id", studentId)
       .order("created_at", { ascending: false });
     if (error) {
       console.error("[sessions:GET]", error);
@@ -29,12 +39,16 @@ export default async (req: Request) => {
   }
 
   if (req.method === "POST") {
-    let body: { studentName?: string; answers?: SubmittedAnswer[] };
+    let body: { studentId?: string; answers?: SubmittedAnswer[] };
     try {
       body = await req.json();
     } catch {
       return json({ error: "Invalid request body." }, 400);
     }
+
+    if (!body.studentId) return json({ error: "Missing studentId." }, 400);
+    const student = await requireStudent(supabase, body.studentId, code);
+    if (!student) return json({ error: "Invalid access code." }, 403);
 
     const answers = body.answers ?? [];
     if (answers.length !== 24) {
@@ -43,7 +57,7 @@ export default async (req: Request) => {
 
     const { data: session, error: sessionError } = await supabase
       .from("sessions")
-      .insert({ student_name: body.studentName?.trim() || "Jackson" })
+      .insert({ student_id: student.id, student_name: student.name })
       .select("id")
       .single();
 

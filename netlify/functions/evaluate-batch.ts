@@ -1,5 +1,6 @@
 import type { Config, Context } from "@netlify/functions";
 import { getSupabaseClient, json } from "../lib/supabase";
+import { getAccessCode, requireSessionOwner } from "../lib/auth";
 import { callAnthropicTool } from "../lib/anthropic";
 import { GENERAL_INSTRUCTIONS, QUESTION_RUBRICS } from "../../shared/diagnostic";
 
@@ -66,6 +67,9 @@ export default async (req: Request, context: Context) => {
     return json({ error: err instanceof Error ? err.message : "Server misconfiguration." }, 500);
   }
 
+  const student = await requireSessionOwner(supabase, id, getAccessCode(req));
+  if (!student) return json({ error: "Invalid access code." }, 403);
+
   const { data: answers, error: answersError } = await supabase
     .from("answers")
     .select("question_number, question_title, answer_text")
@@ -85,7 +89,7 @@ export default async (req: Request, context: Context) => {
   const userMessage = (answers as AnswerRow[])
     .map(
       (a) =>
-        `Question ${a.question_number} — ${a.question_title}\n\nJackson's answer: ${
+        `Question ${a.question_number} — ${a.question_title}\n\nStudent's answer: ${
           a.answer_text?.trim() || "(no answer given)"
         }`
     )

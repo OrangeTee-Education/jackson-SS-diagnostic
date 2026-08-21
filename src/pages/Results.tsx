@@ -1,32 +1,35 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { getSession, type SessionDetail } from "../lib/api";
 import { runEvaluation } from "../lib/runEvaluation";
+import { getRememberedStudent } from "../lib/studentAuth";
 
 export default function Results() {
-  const { id } = useParams<{ id: string }>();
+  const { studentId, id } = useParams<{ studentId: string; id: string }>();
+  const remembered = studentId ? getRememberedStudent(studentId) : null;
+
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reevaluating, setReevaluating] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
 
   const load = useCallback(() => {
-    if (!id) return;
-    getSession(id)
+    if (!id || !remembered) return;
+    getSession(id, remembered.code)
       .then(setDetail)
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load session."));
-  }, [id]);
+  }, [id, remembered?.code]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   async function handleReevaluate() {
-    if (!id) return;
+    if (!id || !remembered) return;
     setReevaluating(true);
     setError(null);
     try {
-      await runEvaluation(id, setProgress);
+      await runEvaluation(id, remembered.code, setProgress);
       load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Evaluation failed.");
@@ -36,11 +39,15 @@ export default function Results() {
     }
   }
 
+  if (!studentId || !id || !remembered) {
+    return <Navigate to="/social-studies" replace />;
+  }
+
   if (error) {
     return (
       <div className="page">
         <p className="error">{error}</p>
-        <Link to="/social-studies">Back home</Link>
+        <Link to={`/social-studies/students/${studentId}`}>Back home</Link>
       </div>
     );
   }
@@ -64,7 +71,7 @@ export default function Results() {
           <p className="muted">{new Date(session.created_at).toLocaleString()}</p>
         </div>
         <div className="button-row no-print">
-          <Link to="/social-studies" className="button secondary">
+          <Link to={`/social-studies/students/${studentId}`} className="button secondary">
             Back
           </Link>
           {data && (

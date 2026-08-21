@@ -31,6 +31,30 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return data as T;
 }
 
+function authHeaders(code: string): Record<string, string> {
+  return { "x-access-code": code };
+}
+
+export interface Student {
+  id: string;
+  name: string;
+}
+
+export async function createStudent(name: string): Promise<Student & { access_code: string }> {
+  const data = await apiFetch<{ student: Student & { access_code: string } }>("/api/students", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+  return data.student;
+}
+
+export async function loginStudent(code: string): Promise<{ student: Student; code: string }> {
+  return apiFetch<{ student: Student; code: string }>("/api/student-login", {
+    method: "POST",
+    body: JSON.stringify({ code }),
+  });
+}
+
 export interface SessionSummary {
   id: string;
   student_name: string;
@@ -38,8 +62,11 @@ export interface SessionSummary {
   created_at: string;
 }
 
-export async function listSessions(): Promise<SessionSummary[]> {
-  const data = await apiFetch<{ sessions: SessionSummary[] }>("/api/sessions");
+export async function listSessions(studentId: string, code: string): Promise<SessionSummary[]> {
+  const data = await apiFetch<{ sessions: SessionSummary[] }>(
+    `/api/sessions?studentId=${encodeURIComponent(studentId)}`,
+    { headers: authHeaders(code) }
+  );
   return data.sessions;
 }
 
@@ -50,10 +77,15 @@ export interface SubmittedAnswer {
   answerText: string;
 }
 
-export async function createSession(studentName: string, answers: SubmittedAnswer[]): Promise<string> {
+export async function createSession(
+  studentId: string,
+  code: string,
+  answers: SubmittedAnswer[]
+): Promise<string> {
   const data = await apiFetch<{ id: string }>("/api/sessions", {
     method: "POST",
-    body: JSON.stringify({ studentName, answers }),
+    headers: authHeaders(code),
+    body: JSON.stringify({ studentId, answers }),
   });
   return data.id;
 }
@@ -81,13 +113,18 @@ export interface SessionDetail {
   report: ReportRow | null;
 }
 
-export async function getSession(id: string): Promise<SessionDetail> {
-  return apiFetch<SessionDetail>(`/api/sessions/${id}`);
+export async function getSession(id: string, code: string): Promise<SessionDetail> {
+  return apiFetch<SessionDetail>(`/api/sessions/${id}`, { headers: authHeaders(code) });
 }
 
-export async function evaluateBatch(id: string, questionNumbers: number[]): Promise<PerQuestionEvaluation[]> {
+export async function evaluateBatch(
+  id: string,
+  code: string,
+  questionNumbers: number[]
+): Promise<PerQuestionEvaluation[]> {
   const data = await apiFetch<{ evaluations: PerQuestionEvaluation[] }>(`/api/sessions/${id}/evaluate-batch`, {
     method: "POST",
+    headers: authHeaders(code),
     body: JSON.stringify({ questionNumbers }),
   });
   return data.evaluations;
@@ -98,8 +135,11 @@ export interface SummaryAResult {
   domain_interpretation: DomainInterpretation[];
 }
 
-export async function evaluateSummaryA(id: string): Promise<SummaryAResult> {
-  return apiFetch<SummaryAResult>(`/api/sessions/${id}/evaluate-summary-a`, { method: "POST" });
+export async function evaluateSummaryA(id: string, code: string): Promise<SummaryAResult> {
+  return apiFetch<SummaryAResult>(`/api/sessions/${id}/evaluate-summary-a`, {
+    method: "POST",
+    headers: authHeaders(code),
+  });
 }
 
 export interface SummaryBResult {
@@ -108,8 +148,11 @@ export interface SummaryBResult {
   instructional_implications: InstructionalImplications;
 }
 
-export async function evaluateSummaryB(id: string): Promise<SummaryBResult> {
-  return apiFetch<SummaryBResult>(`/api/sessions/${id}/evaluate-summary-b`, { method: "POST" });
+export async function evaluateSummaryB(id: string, code: string): Promise<SummaryBResult> {
+  return apiFetch<SummaryBResult>(`/api/sessions/${id}/evaluate-summary-b`, {
+    method: "POST",
+    headers: authHeaders(code),
+  });
 }
 
 export interface ComparisonSession {
@@ -136,12 +179,15 @@ export interface ComparisonResult {
   rows: ComparisonRow[];
 }
 
-export async function getComparison(studentName: string): Promise<ComparisonResult> {
-  return apiFetch<ComparisonResult>(`/api/compare?student=${encodeURIComponent(studentName)}`);
+export async function getComparison(studentId: string, code: string): Promise<ComparisonResult> {
+  return apiFetch<ComparisonResult>(`/api/compare?studentId=${encodeURIComponent(studentId)}`, {
+    headers: authHeaders(code),
+  });
 }
 
 export async function finalizeReport(
   id: string,
+  code: string,
   parts: {
     conceptMap: ConceptMap;
     domainInterpretation: DomainInterpretation[];
@@ -152,6 +198,7 @@ export async function finalizeReport(
 ): Promise<ReportRow> {
   const data = await apiFetch<{ report: ReportRow }>(`/api/sessions/${id}/finalize-report`, {
     method: "POST",
+    headers: authHeaders(code),
     body: JSON.stringify(parts),
   });
   return data.report;

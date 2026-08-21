@@ -1,40 +1,37 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { getComparison, type ComparisonResult } from "../lib/api";
+import { getRememberedStudent } from "../lib/studentAuth";
 
 export default function Compare() {
-  const [searchParams] = useSearchParams();
-  const student = searchParams.get("student") ?? "";
+  const { studentId } = useParams<{ studentId: string }>();
+  const remembered = studentId ? getRememberedStudent(studentId) : null;
+
   const [result, setResult] = useState<ComparisonResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!student) return;
+    if (!studentId || !remembered) return;
     setResult(null);
     setError(null);
-    getComparison(student)
+    getComparison(studentId, remembered.code)
       .then(setResult)
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load comparison."));
-  }, [student]);
+  }, [studentId, remembered?.code]);
 
-  if (!student) {
-    return (
-      <div className="page">
-        <p className="error">No student specified.</p>
-        <Link to="/social-studies">Back home</Link>
-      </div>
-    );
+  if (!studentId || !remembered) {
+    return <Navigate to="/social-studies" replace />;
   }
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
-          <h1>{student} — Comparison Across Administrations</h1>
+          <h1>{remembered.name} — Comparison Across Administrations</h1>
           <p className="muted">Same 24-question instrument, tracked by question over time.</p>
         </div>
         <div className="button-row no-print">
-          <Link to="/social-studies" className="button secondary">
+          <Link to={`/social-studies/students/${studentId}`} className="button secondary">
             Back
           </Link>
           {result && result.sessions.length > 0 && (
@@ -49,12 +46,12 @@ export default function Compare() {
       {!result && !error && <p className="muted">Loading…</p>}
 
       {result && result.sessions.length === 0 && (
-        <p className="muted">No sessions found for "{student}".</p>
+        <p className="muted">No sessions found for "{remembered.name}".</p>
       )}
 
       {result && result.sessions.length === 1 && (
         <p className="muted">
-          Only one administration so far for {student}. Run the diagnostic again later to see a comparison.
+          Only one administration so far for {remembered.name}. Run the diagnostic again later to see a comparison.
         </p>
       )}
 
@@ -68,7 +65,7 @@ export default function Compare() {
                   <th>Question</th>
                   {result.sessions.map((s) => (
                     <th key={s.id}>
-                      <Link to={`/social-studies/sessions/${s.id}`}>
+                      <Link to={`/social-studies/students/${studentId}/sessions/${s.id}`}>
                         {new Date(s.created_at).toLocaleDateString()}
                       </Link>
                     </th>

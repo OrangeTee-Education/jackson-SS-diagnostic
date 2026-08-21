@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { QUESTIONS } from "../../shared/diagnostic";
 import { ApiError, createSession } from "../lib/api";
 import { runEvaluation } from "../lib/runEvaluation";
+import { getRememberedStudent } from "../lib/studentAuth";
 
 export default function Administer() {
+  const { studentId } = useParams<{ studentId: string }>();
+  const remembered = studentId ? getRememberedStudent(studentId) : null;
   const navigate = useNavigate();
-  const [studentName, setStudentName] = useState("Jackson");
+
   const [answers, setAnswers] = useState<string[]>(() => Array(QUESTIONS.length).fill(""));
   const [step, setStep] = useState(0); // 0 = intro, 1..24 = questions, 25 = review
   const [submitting, setSubmitting] = useState(false);
@@ -14,6 +17,10 @@ export default function Administer() {
   const [error, setError] = useState<string | null>(null);
 
   const totalSteps = QUESTIONS.length;
+
+  if (!studentId || !remembered) {
+    return <Navigate to="/social-studies" replace />;
+  }
 
   function updateAnswer(index: number, value: string) {
     setAnswers((prev) => {
@@ -24,6 +31,7 @@ export default function Administer() {
   }
 
   async function handleSubmit() {
+    if (!remembered) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -33,9 +41,9 @@ export default function Administer() {
         prompt: q.prompt,
         answerText: answers[i],
       }));
-      const id = await createSession(studentName, payload);
-      await runEvaluation(id, setProgress);
-      navigate(`/social-studies/sessions/${id}`);
+      const id = await createSession(remembered.id, remembered.code, payload);
+      await runEvaluation(id, remembered.code, setProgress);
+      navigate(`/social-studies/students/${remembered.id}/sessions/${id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong submitting the diagnostic.");
       setSubmitting(false);
@@ -48,24 +56,13 @@ export default function Administer() {
       <div className="page">
         <div className="card">
           <h1>New Diagnostic Session</h1>
-          <label className="field">
-            Student name
-            <input
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && studentName.trim()) setStep(1);
-              }}
-            />
-          </label>
           <p className="muted">
-            You'll go through {totalSteps} questions one at a time. Type the answer as close to verbatim as
-            possible — awkward wording is fine. You can go back and edit any answer before submitting.
+            For <strong>{remembered.name}</strong>. You'll go through {totalSteps} questions one at a time. Type
+            the answer as close to verbatim as possible — awkward wording is fine. You can go back and edit any
+            answer before submitting.
           </p>
           <div className="button-row">
-            <button onClick={() => setStep(1)} disabled={!studentName.trim()}>
-              Begin
-            </button>
+            <button onClick={() => setStep(1)}>Begin</button>
           </div>
         </div>
       </div>
@@ -116,7 +113,7 @@ export default function Administer() {
   return (
     <div className="page">
       <div className="card">
-        <h1>Review — {studentName}</h1>
+        <h1>Review — {remembered.name}</h1>
         <p className="muted">Confirm the answers below, then submit for evaluation.</p>
         <ol className="review-list">
           {QUESTIONS.map((q, i) => (
