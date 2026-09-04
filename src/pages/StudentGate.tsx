@@ -89,11 +89,12 @@ export default function StudentGate() {
       {remembered.length > 0 && (
         <section className="report-section">
           <h2>Continue</h2>
+          <p className="muted">Names are hidden here for privacy on shared devices.</p>
           <ul className="session-list">
-            {remembered.map((s) => (
+            {remembered.map((s, i) => (
               <li key={s.id} className="remembered-student-row">
                 <Link to={`/social-studies/students/${s.id}`} className="remembered-student-link">
-                  <span className="session-name">{s.name}</span>
+                  <span className="session-name">Saved login {i + 1}</span>
                 </Link>
                 <button className="link-button" onClick={() => handleForget(s.id)}>
                   Forget
