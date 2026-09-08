@@ -15,13 +15,6 @@ const APPS: AppCard[] = [
     path: "/social-studies",
     status: "live",
   },
-  {
-    title: "Social Studies Lessons",
-    description:
-      "Printable lesson plans and student worksheets for the social studies curriculum, starting with Lesson 1.1: History, geography, civics, and economics as four lenses.",
-    path: "/lessons",
-    status: "live",
-  },
 ];
 
 export default function Landing() {
