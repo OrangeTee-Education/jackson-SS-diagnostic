@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f8fafc" />
+  <title>Perspective Lab — I, You & Me</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="logo" aria-hidden="true">↔</div><div><div class="eyebrow">A SMALL LEARNING LAB</div><h1>Perspective Lab</h1></div></div>
+    <div class="header-note">Same action. Different speaker. Different words.</div>
+  </header>
+  <nav class="tabs" aria-label="Learning stages">
+    <button class="tab" data-tab="action" aria-selected="true"><span class="tab-n">01</span> Follow the ball</button>
+    <button class="tab" data-tab="speaker" aria-selected="false"><span class="tab-n">02</span> Who is talking?</button>
+    <button class="tab" data-tab="mix" aria-selected="false"><span class="tab-n">03</span> Put it together</button>
+    <button class="tab" data-tab="listen" aria-selected="false"><span class="tab-n">04</span> Listen &amp; match</button>
+  </nav>
+  <main class="panel">
+    <div class="main">
+      <div class="topline"><div><p id="kicker" class="kicker">Step 1 · Action</p><h2 id="heading">Follow the ball</h2></div><span id="progress" class="pill">Question 1 of 6</span></div>
+      <p id="description" class="intro">First, look at who gives the ball and who gets it. We will use names, not pronouns.</p>
+      <div id="mainGrid" class="split">
+        <div id="sceneWrap" class="scene"><div id="sceneArt"></div><p id="sceneCaption" class="caption"></p></div>
+        <div class="lesson">
+          <div id="demo" class="hidden">
+            <p class="subtle">Alex <strong>always</strong> gives Mia the ball here. Change only who is speaking.</p>
+            <div class="talker-controls" role="group" aria-label="Choose speaker">
+              <button class="btn" id="alexTalk" aria-pressed="true">Alex talks</button>
+              <button class="btn" id="samTalk" aria-pressed="false">Mia talks</button>
+            </div>
+            <div class="sentence"><div id="speakerLabel" class="small">ALEX SAYS</div><div id="liveSentence" class="big">I give you the ball.</div><div id="mapping" class="mapping"></div></div>
+            <div class="actions"><button id="hearDemo" class="btn">🔊 Hear sentence</button><button id="startSpeakerPractice" class="btn primary">Try questions →</button></div>
+          </div>
+          <div id="practice">
+            <div id="listenPrompt" class="hidden"></div>
+            <div id="question" class="prompt"></div>
+            <div id="answerChoices" class="choices"></div>
+            <div id="pictureChoices" class="mini hidden"></div>
+            <div id="feedback" class="feedback hidden" role="status" aria-live="polite"></div>
+            <div id="hint" class="help hidden" role="status" aria-live="polite"></div>
+            <div class="actions">
+              <button id="hintButton" class="btn">Show a hint</button>
+              <button id="replayButton" class="btn">↻ Replay ball</button>
+              <button id="listenButton" class="btn hidden">🔊 Hear sentence</button>
+              <button id="nextButton" class="btn primary hidden">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <details class="teacher"><summary>Teacher view · progress and teaching notes</summary>
+      <div class="metrics"><div class="metric"><b id="statFirst">0 / 0</b><small>Correct without help</small></div><div class="metric"><b id="statHelp">0</b><small>Correct after help</small></div><div class="metric"><b id="statAction">0</b><small>Action-role misses</small></div><div class="metric"><b id="statPerspective">0</b><small>Speaker-word misses</small></div><div class="metric"><b id="statMatch">0</b><small>Listening-match misses</small></div><div class="metric"><b id="statHints">0</b><small>Hints opened</small></div></div>
+      <p><strong>How to use:</strong> Start with Step 1, then Step 2. Step 3 tests action roles before sentence choice, so the prompts separate these two possible difficulties. Step 4 is a transfer check, not a definitive diagnosis.</p>
+      <p><strong>Interpretation:</strong> Miss counts are by question, not by repeated taps. “Correct without help” is counted only for answers given on the first attempt without opening a hint. Progress is kept only for this open page; nothing is sent to a server.</p>
+      <details class="voice-settings"><summary>Character voices · adult settings</summary>
+        <p>Alex is a boy and Mia is a girl. The app prefers natural-sounding male and female English voices when available. Voice names aren't standardized, so check the samples below.</p>
+        <div class="voice-grid">
+          <div class="voice-field"><label for="alexVoice">Alex’s voice</label><select id="alexVoice"><option value="auto">Automatic</option></select><button type="button" class="small-btn" id="testAlexVoice">🔊 Hear Alex</button></div>
+          <div class="voice-field"><label for="samVoice">Mia’s voice</label><select id="samVoice"><option value="auto">Automatic</option></select><button type="button" class="small-btn" id="testSamVoice">🔊 Hear Mia</button></div>
+        </div>
+        <p class="subtle">Both characters speak their complete sentence without inserted pauses. Words light up as they're spoken; some browsers estimate timing when speech word-boundary events are unavailable. For more natural emphasis and exact timing, this app can later use prerecorded voice clips.</p>
+        <p id="voiceStatus" aria-live="polite">Checking the available voices…</p>
+      </details>
+      <button class="small-btn" id="resetButton">Reset practice counts</button>
+    </details>
+  </main>
+</div>
+<script src="./app.js" defer></script>
+</body>
+</html>
