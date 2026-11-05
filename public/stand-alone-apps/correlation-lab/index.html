@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f7fb">
+<title>Correlation Lab v2.3 — See what r means</title>
+<style>
+:root{--ink:#1b2944;--muted:#5e6e88;--blue:#2c61c8;--blue-soft:#eaf0ff;--teal:#11745c;--red:#aa4b5c;--orange:#ea9a41;--bg:#f5f7fb;--line:#dee5f0;--shadow:0 5px 22px rgba(27,46,85,.055)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.48 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input{font:inherit}button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #93b9ff;outline-offset:3px}
+main{width:min(1150px,100%);padding:26px 20px 44px;margin:auto}
+.eyebrow{color:var(--blue);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:850}
+h1{font-size:clamp(30px,4vw,44px);line-height:1.15;letter-spacing:-.035em;margin:7px 0 8px}
+.sub{color:var(--muted);font-size:16px;max-width:780px;margin:0}
+.tabs{display:flex;gap:4px;background:#e9eef7;padding:5px;border-radius:14px;width:max-content;max-width:100%;margin:23px 0 19px}
+.tab{border:0;border-radius:10px;color:#4a5c78;background:transparent;padding:10px 19px;font-weight:750;font-size:14px;white-space:nowrap}
+.tab.active{color:#204da5;background:#fff;box-shadow:0 1px 8px #26385d15}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(310px,.95fr);gap:17px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+.chart-card{padding:18px 18px 14px}.control-card,.quiz-card{padding:21px}
+h2{margin:0;font-size:21px;line-height:1.2;letter-spacing:-.025em}
+.muted{color:var(--muted)}.small{font-size:13px}
+.chart-header{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.chart-header p{font-size:13px;color:var(--muted);margin:4px 0 0}
+.svg-wrap{margin-top:12px}
+svg{width:100%;height:auto;display:block;user-select:none}
+.grid-line{stroke:#e7edf6;stroke-width:1}.axis-label{fill:#7c89a0;font-size:12px;font-weight:550}.axis-title{fill:#65758e;font-size:14px;font-weight:750}
+.point{fill:#3b76dc;stroke:white;stroke-width:2.2;filter:drop-shadow(0 1px 1px #18458122)}
+.trend-line{stroke:var(--orange);stroke-width:3.5;stroke-dasharray:9 6;stroke-linecap:round}
+.legend{display:flex;align-items:center;gap:18px;margin:0 0 0 31px;color:#71809a;font-size:12px}
+.dot-icon{display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b76dc;margin-right:6px}
+.line-icon{display:inline-block;width:17px;border-top:3px dashed var(--orange);margin-right:6px;vertical-align:3px}
+.chart-footer{border-top:1px solid #edf0f5;margin-top:10px;padding-top:11px;color:#5a6b86;font-size:13px}
+.toggle{font-size:13px;font-weight:650;white-space:nowrap;display:flex;align-items:center;gap:7px;color:#485b78;cursor:pointer}
+.toggle input{width:17px;height:17px;accent-color:var(--blue)}
+.big-readout{padding:17px;background:#eff4ff;border-radius:14px;border:1px solid #e0e9ff}
+.readout-head{font-size:11px;font-weight:800;letter-spacing:.12em;color:#526f9e;text-transform:uppercase}
+.r-value{font-size:clamp(52px,7vw,69px);font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-.055em;font-weight:820;color:#2354af;margin-top:3px}
+.r-value.negative{color:#a34557}
+.r-label{color:#2d4874;font-weight:770;font-size:15px;margin-top:5px;min-height:23px}
+.readout-message{font-size:13px;color:#4e6588;margin:6px 0 0}
+.slider-title{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-weight:770;margin:25px 0 11px}
+.slider-title span{font-size:14px}.slider-title strong{font-size:13px;color:var(--blue)}
+input[type=range]{width:100%;margin:0;height:23px;cursor:pointer;accent-color:var(--blue)}
+.range-labels{display:flex;justify-content:space-between;gap:5px;margin-top:4px;font-size:12px;color:#6b7b95;font-variant-numeric:tabular-nums;font-weight:750}
+.quick-title{color:#586986;font-size:13px;font-weight:800;margin:20px 0 10px}
+.quick-choices{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.quick{border:1px solid #dae3f1;background:#fff;color:#475b7b;padding:9px 2px;border-radius:9px;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums}
+.quick.active{color:#2354af;border-color:#97b3e7;background:var(--blue-soft)}
+.interpret{padding:13px 14px;background:#f8faff;border:1px solid #e8eef8;border-radius:12px;font-size:14px;margin:20px 0 0;color:#394d6c;min-height:77px}
+.interpret strong{color:#1e355e}
+.actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+.action{border:1px solid #d2ddec;background:white;color:#2f5183;border-radius:10px;padding:10px 13px;font-size:13px;font-weight:750}
+.action.primary{background:var(--blue);border-color:var(--blue);color:white}.action:hover,.quick:hover,.choice:hover{filter:brightness(.97)}
+.key-ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.idea{background:white;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+.idea strong{font-size:14px}.idea p{font-size:13px;color:var(--muted);margin:5px 0 0}.idea .n{color:var(--blue);margin-right:6px}
+footer{text-align:center;color:#7887a0;font-size:12px;margin-top:18px}
+.mode-intro{margin-bottom:17px;color:var(--muted);font-size:14px}
+.compare-top{display:flex;justify-content:space-between;gap:16px;align-items:start;margin-bottom:16px}
+.progress{font-size:12px;color:#71819d;font-weight:800;letter-spacing:.03em;margin-bottom:7px}
+.compare-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.compare-choice{display:block;text-align:left;border:2px solid #e0e7f2;border-radius:15px;background:white;padding:10px 10px 14px;min-width:0;color:var(--ink);transition:border-color .15s,background .15s}
+.compare-choice:hover:not(:disabled){border-color:#a3bce9;background:#f9fbff}
+.compare-choice.correct{border-color:#31a475;background:#effaf4}.compare-choice.incorrect{border-color:#cf7f81;background:#fff5f3}
+.compare-choice:disabled{cursor:default}
+.compare-choice svg{pointer-events:none}
+.graph-label{font-size:15px;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin:2px 6px 4px}
+.graph-value{color:#345fa9;font-size:13px;font-weight:780}
+.comparison-panel{padding:18px}.feedback{padding:13px 15px;border-radius:12px;margin-top:16px;font-size:14px;line-height:1.55}
+.feedback.good{background:#e7f8ee;color:#135a41}.feedback.try{background:#fff3e7;color:#7a4924}
+.feedback strong{font-weight:800}.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:17px}
+.choice{border:1px solid #d8e2f0;border-radius:11px;padding:13px 12px;background:white;color:#345175;font-size:17px;font-weight:750;font-variant-numeric:tabular-nums}
+.choice.correct{border-color:#35a77b;background:#eaf9f0;color:#12613f}.choice.incorrect{border-color:#d88689;background:#fff1ef;color:#9a3545}
+.choice:disabled{cursor:default}.result{padding:35px 20px;text-align:center}.result-score{font-size:62px;font-weight:850;color:var(--blue);letter-spacing:-.045em;line-height:1.1;margin:9px 0}.result p{color:var(--muted)}
+[hidden]{display:none!important}
+@media(max-width:790px){.layout{grid-template-columns:1fr}.chart-card{padding:15px 12px 13px}.control-card,.quiz-card{padding:18px}.chart-header{padding:0 4px}.legend{margin-left:18px}}
+@media(max-width:600px){main{padding:19px 12px 28px}.tabs{width:100%}.tab{flex:1;padding:9px 5px}.compare-grid{grid-template-columns:1fr;gap:11px}.compare-choice{padding:10px;border-radius:12px}.compare-choice svg{max-height:230px}.graph-label{font-size:14px;margin:2px 6px 3px}.graph-value{font-size:13px}.comparison-panel{padding:12px}.key-ideas{grid-template-columns:1fr}.idea{padding:11px 14px}.quick{font-size:12px;padding:9px 0}.chart-header h2{font-size:19px}}
+@media(prefers-reduced-motion:reduce){.compare-choice{transition:none}}
+
+/* Practice: work out the answer by building a matching scatterplot. */
+.practice-heading{margin-bottom:14px}
+.practice-heading h2{margin:0 0 6px}
+.practice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.practice-chart{padding:17px 17px 15px;min-width:0}
+.practice-chart h3{font-size:17px;line-height:1.3;margin:0;font-weight:800}
+.practice-chart .small{margin:5px 0 0;min-height:38px}
+.practice-chart .svg-wrap{margin-top:8px}
+.practice-helper{border-top:1px solid #e8eef8;padding-top:14px}
+.practice-control-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.practice-control-head label{font-size:14px;font-weight:800}
+.practice-r{font-size:29px;color:#2354af;font-weight:850;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.practice-r.negative{color:#a34557}
+.practice-description{font-size:13px;color:#4b6184;min-height:18px;margin:7px 0 0}
+.practice-answer-box{padding:17px 21px 20px;margin-top:16px}
+.practice-answer-box h3{font-size:17px;margin:0}
+.practice-answer-box .answers{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px}
+.practice-note{color:var(--muted);font-size:13px;margin:5px 0 0}
+@media(max-width:790px){.practice-chart{padding:13px 12px}.practice-chart .small{min-height:0}}
+@media(max-width:630px){.practice-grid{grid-template-columns:1fr;gap:12px}.practice-chart{padding:13px 12px}.practice-chart .svg-wrap{max-width:480px;margin:8px auto}.practice-answer-box{padding:16px}.practice-answer-box .answers{grid-template-columns:repeat(2,minmax(0,1fr))}.practice-chart .small{min-height:0}}
+
+/* v2.3: visual guide, prediction prompts, paired comparisons, scaffolding, mobile support */
+.concept-guide{background:#f8faff;border:1px solid #e0e8f7;border-radius:12px;margin:15px 0 0;padding:12px 13px}
+.concept-heading{font-size:12px;font-weight:800;color:#415b81;margin-bottom:8px}
+.concept-track{display:grid;grid-template-columns:1fr 1fr .85fr 1fr 1fr;gap:3px;overflow:hidden;border-radius:7px}
+.concept-track span{font-size:11px;line-height:1.3;text-align:center;padding:7px 2px;font-weight:700;color:#294c7c;background:#e5eeff}
+.concept-track span:nth-child(1){background:#cddcf7}.concept-track span:nth-child(3){background:#edf0f5;color:#566279}.concept-track span:nth-child(4){background:#e3f3ed;color:#246b54}.concept-track span:nth-child(5){background:#cde9dd;color:#205f49}
+.concept-ends{display:flex;justify-content:space-between;color:#61728d;font-size:11px;margin-top:6px}
+.concept-guide p{font-size:12px;color:#49617f;margin:7px 0 0}
+.strength-meter{height:7px;background:#e0e6ef;border-radius:20px;overflow:hidden;margin-top:10px}.strength-fill{height:100%;width:80%;background:#3c74cc;transition:width .12s}
+.prediction-panel{margin-top:16px;padding:18px 20px}.prediction-top{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
+.prediction-panel h2{font-size:18px}.prediction-panel p{margin:10px 0;color:#536683;font-size:14px}
+.prediction-choices{display:flex;gap:8px;flex-wrap:wrap}.prediction-choice{border:1px solid #cbd9ef;border-radius:10px;background:white;color:#34537f;font-size:14px;font-weight:750;padding:10px 13px}
+.prediction-choice.picked{background:#e7efff;border-color:#6795e2;color:#1f4fa5}.prediction-choice:disabled{opacity:.85;cursor:default}
+.prediction-instruction{font-size:13px;color:#4e6382;margin-top:10px}.prediction-panel .actions{margin-top:12px}
+.compare-grid.pair{grid-template-columns:repeat(2,minmax(0,1fr));max-width:850px;margin:auto}.compare-grid.pair .compare-choice{cursor:default}
+.compare-pair-answers{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px}.compare-pair-answers button{font-weight:750;border:1px solid #d8e2f0;border-radius:10px;background:white;color:#345175;padding:10px 18px}
+.compare-pair-answers button.correct{border-color:#32a376;background:#eaf9f0;color:#12613f}.compare-pair-answers button.incorrect{border-color:#d88689;background:#fff1ef;color:#943743}
+.practice-step-hint{display:inline-flex;align-items:center;gap:5px;border-radius:20px;background:#eaf0ff;color:#2458b0;font-size:11px;font-weight:800;padding:4px 9px;margin-top:6px}
+.match-status{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef5ff;font-size:13px;color:#365b8b;line-height:1.45}
+.practice-grid.solo{grid-template-columns:minmax(0,720px);justify-content:center}
+.practice-grid.solo .practice-target{width:100%}
+.practice-grid.solo .practice-target svg{max-height:370px}
+.practice-grid.solo .practice-target .small{min-height:0}
+.practice-section-divider{border-top:1px solid #e4ebf6;margin:17px 0 0;padding-top:11px;font-size:12px;font-weight:800;color:#607899}
+.practice-mini-help{font-size:12px;color:#667b98;margin-top:7px}
+.result-breakdown{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:14px auto 9px}
+.result-breakdown span{background:#f2f6fc;color:#33537e;padding:10px 13px;border-radius:10px;font-size:14px;font-weight:700}
+@media(max-width:630px){
+ .practice-grid:not(.solo) .practice-target{position:sticky;top:4px;z-index:5;box-shadow:0 9px 27px rgba(27,46,85,.15);padding:9px 12px}
+ .practice-grid:not(.solo) .practice-target h3{font-size:14px}
+ .practice-grid:not(.solo) .practice-target .small{display:none}
+ .practice-grid:not(.solo) .practice-target .svg-wrap{margin:3px auto 0;display:flex;justify-content:center}
+ .practice-grid:not(.solo) .practice-target svg{width:min(260px,100%);max-height:190px}
+ .practice-grid.solo .practice-target{position:static}
+ .practice-grid.solo .practice-target svg{width:100%;max-height:none}
+ .concept-track span{font-size:10px;padding:7px 1px}
+ .prediction-panel{padding:15px}
+ .compare-grid.pair{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .compare-grid.pair .compare-choice{padding:6px}
+ .compare-grid.pair .graph-label{font-size:12px}
+ .compare-grid.pair svg{max-height:180px}
+ .compare-pair-answers button{font-size:13px;padding:9px}
+}
+
+/* Keep both scatterplots simultaneously in view while using the slider on a phone. */
+.practice-workspace{display:flex;flex-direction:column;gap:12px}
+.practice-controls-card{padding:17px 21px}
+.practice-controls-card .practice-helper{border:0;padding:0}
+.prediction-preview{width:220px;flex:none;background:#f8fbff;border:1px solid #e1e9f5;border-radius:12px;padding:8px}
+.prediction-preview .mini-readout{font-size:12px;color:#4a6285;text-align:center;font-weight:750}
+.prediction-content{display:flex;align-items:center;gap:15px;justify-content:space-between}
+.prediction-content p{flex:1}
+@media(max-width:630px){
+ .practice-workspace .practice-grid:not(.solo){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;position:sticky;top:3px;z-index:5;padding:3px 0;background:var(--bg)}
+ .practice-workspace .practice-grid:not(.solo) .practice-target{position:static;box-shadow:var(--shadow);padding:8px 6px}
+ .practice-workspace .practice-grid:not(.solo) .practice-chart{padding:8px 6px}
+ .practice-workspace .practice-grid:not(.solo) .practice-chart h3{font-size:12px;min-height:30px;line-height:1.25}
+ .practice-workspace .practice-grid:not(.solo) .practice-chart .small{display:none}
+ .practice-workspace .practice-grid:not(.solo) .practice-chart .svg-wrap{display:block;margin:2px 0 0}
+ .practice-workspace .practice-grid:not(.solo) .practice-chart svg{width:100%;max-height:none}
+ .practice-workspace .practice-grid:not(.solo) .axis-label,.practice-workspace .practice-grid:not(.solo) .axis-title{display:none}
+ .practice-workspace .practice-grid:not(.solo) .point{r:10px;stroke-width:1.8}
+ .practice-controls-card{padding:13px 15px}
+ .prediction-content{gap:9px}
+ .prediction-preview{width:132px;padding:3px}
+ .prediction-preview .mini-readout{font-size:10px}
+ .prediction-content p{font-size:13px;line-height:1.45}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">Interactive statistics · Visual learning</div>
+  <h1>Correlation Lab</h1>
+  <p class="sub">What does a correlation number actually <em>look like</em>? Move a slider, watch the dots change, then test your eye for patterns. No formulas needed.</p>
+</header>
+<nav class="tabs" aria-label="Activities">
+  <button class="tab active" id="exploreTab" type="button" aria-current="page">1 · Explore</button>
+  <button class="tab" id="compareTab" type="button">2 · Compare</button>
+  <button class="tab" id="practiceTab" type="button">3 · Practice</button>
+</nav>
+<section id="exploreView" aria-label="Explore correlation">
+  <div class="layout">
+    <div class="panel chart-card">
+      <div class="chart-header">
+        <div><h2>Watch the dots change</h2><p>Each dot is one pair of measurements.</p></div>
+        <label class="toggle"><input id="showLine" type="checkbox" checked> Show trend line</label>
+      </div>
+      <div class="svg-wrap"><svg id="explorePlot" viewBox="0 0 640 460" role="img" aria-label="A scatterplot showing the correlation selected with the slider"></svg></div>
+      <div class="legend"><span><i class="dot-icon"></i>Data dots</span><span><i class="line-icon"></i>Trend line</span></div>
+      <div class="chart-footer" id="exploreHint">Move the slider slowly from +1 toward 0. Watch the dots spread out.</div>
+    </div>
+    <div class="panel control-card">
+      <div class="big-readout" aria-live="polite" aria-atomic="true">
+        <div class="readout-head">Correlation coefficient (r)</div>
+        <div class="r-value" id="rValue">+0.80</div>
+        <div class="r-label" id="rLabel">Strong positive correlation</div>
+        <p class="readout-message" id="plainMeaning">As X increases, Y rises in a very consistent pattern, though not perfectly.</p>
+      </div>
+      <div class="slider-title"><span><label for="rSlider">Change the correlation</label></span><strong>Drag me ↔</strong></div>
+      <input type="range" id="rSlider" min="-100" max="100" step="1" value="80" aria-label="Correlation, from negative one to positive one">
+      <div class="range-labels"><span>−1.00</span><span>0</span><span>+1.00</span></div>
+      <div class="concept-guide" aria-label="Correlation number guide">
+        <div class="concept-heading">Two clues: direction and strength</div>
+        <div class="concept-track" aria-hidden="true"><span>Strong −</span><span>Weak −</span><span>Near 0</span><span>Weak +</span><span>Strong +</span></div>
+        <div class="concept-ends"><span>−1.00</span><span>0</span><span>+1.00</span></div>
+        <p><strong>Sign</strong> tells direction. <strong>Distance from zero</strong> tells strength.</p>
+        <div class="strength-meter" aria-label="Linear relationship strength"><div class="strength-fill" id="strengthFill"></div></div>
+      </div>
+      <div class="quick-title">Jump to a value</div>
+      <div class="quick-choices" role="group" aria-label="Correlation examples">
+        <button class="quick" type="button" data-r="-100">−1</button>
+        <button class="quick" type="button" data-r="-80">−0.8</button>
+        <button class="quick" type="button" data-r="-40">−0.4</button>
+        <button class="quick" type="button" data-r="0">0</button>
+        <button class="quick" type="button" data-r="40">+0.4</button>
+        <button class="quick" type="button" data-r="80">+0.8</button>
+        <button class="quick" type="button" data-r="100">+1</button>
+      </div>
+      <div id="interpret" class="interpret" aria-live="polite"></div>
+      <div class="actions">
+        <button id="newDots" class="action" type="button">↻ New dots, same r</button>
+        <button id="goCompare" class="action primary" type="button">Compare patterns →</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel prediction-panel" id="predictionPanel">
+    <div class="prediction-top"><h2>Predict, then test</h2><button id="newPrediction" type="button" class="action">Another prediction ↻</button></div>
+    <div class="prediction-content">
+      <p id="predictionQuestion">If r changes from +0.80 to −0.80, what happens to its strength?</p>
+      <div class="prediction-preview" aria-label="Live preview of the current correlation pattern">
+        <svg id="predictionPlot" viewBox="0 0 640 460" role="img" aria-label="Small scatterplot showing the current correlation"></svg>
+        <div class="mini-readout" id="predictionValue">Current r: +0.80</div>
+      </div>
+    </div>
+    <div id="predictionChoices" class="prediction-choices" role="group" aria-label="Predict the change in strength">
+      <button class="prediction-choice" type="button" data-predict="stronger">Stronger</button>
+      <button class="prediction-choice" type="button" data-predict="weaker">Weaker</button>
+      <button class="prediction-choice" type="button" data-predict="same">Same strength</button>
+    </div>
+    <div id="predictionInstruction" class="prediction-instruction">Choose your prediction first.</div>
+    <div class="actions"><button id="testPrediction" class="action primary" type="button" disabled>Show the change on the graph →</button></div>
+    <div id="predictionFeedback" class="feedback" role="status" hidden></div>
+  </div>
+</section>
+<section id="compareView" aria-label="Compare scatterplots" hidden>
+  <div class="panel comparison-panel" id="comparisonActivity">
+    <div class="compare-top">
+      <div><div class="progress" id="compareProgress">Comparison 1 of 5</div><h2 id="compareQuestion">Which graph has the strongest correlation?</h2></div>
+      <button id="restartCompare" class="action" type="button">Start over</button>
+    </div>
+    <p class="mode-intro">Look at the direction of the dots <em>and</em> how tightly they follow a line. The sign tells direction; strength depends on distance from zero.</p>
+    <div class="compare-grid" id="compareGrid" role="group" aria-label="Scatterplots to compare"></div>
+    <div class="compare-pair-answers" id="comparePairAnswers" role="group" aria-label="Which graph is stronger?" hidden></div>
+    <div id="compareFeedback" class="feedback" role="status" hidden></div>
+    <div class="actions"><button id="nextCompare" type="button" class="action primary" hidden>Next comparison →</button></div>
+  </div>
+  <div id="compareEnd" class="panel result" hidden>
+    <div class="eyebrow">Compare complete</div><div class="result-score" id="compareScore">0 / 5</div>
+    <h2>You can compare patterns!</h2><p>Remember: −0.9 and +0.9 are equally strong. The sign shows direction, not strength.</p>
+    <div class="actions" style="justify-content:center"><button class="action" id="againCompare">Try comparisons again</button><button class="action primary" id="goPractice">Practice with numbers →</button></div>
+  </div>
+</section>
+<section id="practiceView" aria-label="Practice correlation" hidden>
+  <div id="practiceActivity">
+    <div class="practice-heading">
+      <div class="progress" id="practiceProgress">Guided question 1 of 6</div>
+      <h2 id="practiceHeading">Which value of r fits best?</h2>
+      <p class="mode-intro" id="practiceIntro" style="margin:6px 0 0">Use the slider to build a matching graph if you are unsure. Then choose the closest number.</p>
+    </div>
+    <div class="practice-grid" id="practiceGrid">
+      <div class="panel practice-chart practice-target" id="practiceTarget">
+        <h3 id="practiceTargetHeading">1 · Graph to match</h3>
+        <p class="muted small">What correlation might these dots have?</p>
+        <div class="svg-wrap"><svg id="practicePlot" viewBox="0 0 640 460" role="img" aria-label="Question scatterplot with an unknown correlation"></svg></div>
+      </div>
+      <div class="panel practice-chart" id="practiceModelCard">
+        <h3>2 · Make your own match</h3>
+        <p class="muted small">Drag the slider until your dots line up with the question graph.</p>
+        <div class="svg-wrap"><svg id="modelPlot" viewBox="0 0 640 460" role="img" aria-label="Adjustable scatterplot made using the slider"></svg></div>
+        <div class="practice-helper">
+          <div class="practice-control-head">
+            <label for="modelSlider">Change your correlation</label>
+            <output id="modelR" class="practice-r" for="modelSlider" aria-live="polite">0.00</output>
+          </div>
+          <input type="range" id="modelSlider" min="-100" max="100" step="1" value="0" aria-label="Your correlation, from negative one to positive one">
+          <div class="range-labels"><span>−1.00</span><span>0</span><span>+1.00</span></div>
+          <p class="practice-description" id="modelMeaning">Little or no linear correlation</p>
+          <div class="actions" style="margin-top:10px"><button id="checkMatch" class="action" type="button">Check my match</button></div>
+          <div id="matchStatus" class="match-status" role="status" hidden></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel practice-answer-box">
+      <h3 id="answerHeading">3 · Choose the closest answer</h3>
+      <p class="practice-note" id="answerNote">Use the number you made with the slider, or estimate from the question graph.</p>
+      <div id="practiceAnswers" class="answers" role="group" aria-label="Choose a correlation value"></div>
+      <div id="practiceFeedback" class="feedback" role="status" hidden></div>
+      <div class="actions"><button id="nextPractice" class="action primary" type="button" hidden>Next question →</button><button id="returnExplore" class="action" type="button">← Explore</button></div>
+    </div>
+  </div>
+  <div class="panel result" id="practiceEnd" hidden>
+    <div class="eyebrow">Practice complete</div><div class="result-score" id="practiceScore">0 / 6</div>
+    <h2 id="practiceTitle">Nice work!</h2>
+    <div class="result-breakdown"><span id="guidedScore">Guided: 0 / 6</span><span id="independentScore">Independent: 0 / 3</span></div>
+    <p id="practiceSummary">Direction = sign. Strength = how close the dots are to a straight line.</p>
+    <div class="actions" style="justify-content:center"><button id="againPractice" class="action primary">Try again</button><button id="finishExplore" class="action">Explore again</button></div>
+  </div>
+</section>
+<div class="key-ideas" aria-label="What to remember">
+  <div class="idea"><strong><span class="n">01</span>Positive or negative?</strong><p>The sign shows whether the cloud slopes upward or downward.</p></div>
+  <div class="idea"><strong><span class="n">02</span>Strong or weak?</strong><p>Ignore the sign. The closer |r| is to 1, the tighter the straight-line pattern.</p></div>
+  <div class="idea"><strong><span class="n">03</span>One important caution</strong><p>Correlation describes a pattern. It does not prove that one thing causes the other.</p></div>
+</div>
+<footer>Pearson's r measures straight-line relationships. Strength labels are teaching guidelines, not fixed scientific cutoffs. New questions each session · Works offline.</footer>
+</main>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id), clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const P={W:640,H:460,L:54,T:27,w:560,h:380};
+const px=x=>P.L+x*P.w/100, py=y=>P.T+(100-y)*P.h/100;
+const valueText=r=>Math.abs(r)<.005?'0.00':(r>=0?'+':'−')+Math.abs(r).toFixed(2);
+function rng(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296)}
+function standardize(arr){const m=arr.reduce((a,b)=>a+b,0)/arr.length,v=arr.map(n=>n-m),s=Math.sqrt(v.reduce((a,b)=>a+b*b,0)/arr.length);return v.map(n=>n/(s||1))}
+// Two perpendicular standardized vectors give an exact sample Pearson r.
+// Keeping the same seed makes the *same* dots move smoothly while the slider moves.
+function makeDots(target,seed=1357,n=23){
+ const random=rng(seed);
+ const x=standardize(Array.from({length:n},(_,i)=>i-(n-1)/2+(random()-.5)*3));
+ let noise=standardize(Array.from({length:n},()=>{
+   const a=Math.max(random(),1e-10),b=random();return Math.sqrt(-2*Math.log(a))*Math.cos(2*Math.PI*b);
+ }));
+ const proj=noise.reduce((s,v,i)=>s+v*x[i],0)/n;
+ noise=standardize(noise.map((v,i)=>v-proj*x[i]));
+ const y=x.map((v,i)=>target*v+Math.sqrt(Math.max(0,1-target*target))*noise[i]);
+ const maxX=Math.max(...x.map(Math.abs)), maxY=Math.max(...y.map(Math.abs));
+ return x.map((v,i)=>({x:50+39*v/maxX,y:50+39*y[i]/maxY}));
+}
+function corr(dots){
+ const mx=dots.reduce((a,p)=>a+p.x,0)/dots.length,my=dots.reduce((a,p)=>a+p.y,0)/dots.length;
+ let xx=0,yy=0,xy=0;dots.forEach(p=>{const a=p.x-mx,b=p.y-my;xx+=a*a;yy+=b*b;xy+=a*b});
+ return xx&&yy?clamp(xy/Math.sqrt(xx*yy),-1,1):0;
+}
+function linearTrend(dots){
+ const mx=dots.reduce((a,p)=>a+p.x,0)/dots.length,my=dots.reduce((a,p)=>a+p.y,0)/dots.length;
+ let xx=0,xy=0;dots.forEach(p=>{xx+=(p.x-mx)**2;xy+=(p.x-mx)*(p.y-my)});
+ const b=xx?xy/xx:0,a=my-b*mx,ends=[];
+ for(const x of [0,100]){const y=a+b*x;if(y>=0&&y<=100)ends.push({x,y})}
+ if(Math.abs(b)>1e-12)for(const y of [0,100]){const x=(y-a)/b;if(x>=0&&x<=100)ends.push({x,y})}
+ if(ends.length<2)return null;
+ let best=null,dist=-1;
+ for(let i=0;i<ends.length;i++)for(let j=i+1;j<ends.length;j++){
+  const d=(ends[i].x-ends[j].x)**2+(ends[i].y-ends[j].y)**2;if(d>dist){dist=d;best=[ends[i],ends[j]]}
+ }
+ return best;
+}
+function render(svg,dots,{grid=true,line=false}={}){
+ const gr=grid?[0,25,50,75,100].map(v=>`<line class="grid-line" x1="${px(v)}" y1="${P.T}" x2="${px(v)}" y2="${P.T+P.h}"/><line class="grid-line" x1="${P.L}" y1="${py(v)}" x2="${P.L+P.w}" y2="${py(v)}"/><text class="axis-label" x="${px(v)}" y="${P.T+P.h+19}" text-anchor="middle">${v}</text><text class="axis-label" x="${P.L-9}" y="${py(v)+4}" text-anchor="end">${v}</text>`).join(''):'';
+ const trend=line?linearTrend(dots):null;
+ const ln=trend?`<line class="trend-line" x1="${px(trend[0].x)}" y1="${py(trend[0].y)}" x2="${px(trend[1].x)}" y2="${py(trend[1].y)}"/>`:'';
+ const points=dots.map(p=>`<circle class="point" cx="${px(p.x).toFixed(2)}" cy="${py(p.y).toFixed(2)}" r="6.5"/>`).join('');
+ svg.innerHTML=`<rect x="${P.L}" y="${P.T}" width="${P.w}" height="${P.h}" rx="3" fill="#fcfdff" stroke="#ced8e7"/>${gr}<text class="axis-title" x="${P.L+P.w/2}" y="${P.H-9}" text-anchor="middle">Variable X</text><text class="axis-title" x="16" y="${P.T+P.h/2}" text-anchor="middle" transform="rotate(-90 16 ${P.T+P.h/2})">Variable Y</text>${ln}${points}`;
+}
+
+function category(r){const v=Math.abs(r);return v<.2?'Little or no linear':v<.5?'Weak':v<.8?'Moderate':'Strong'}
+const round2=n=>Math.round(n*100)/100;
+function shuffle(a){const out=[...a];for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}return out}
+const pick=(lo,hi)=>lo+(hi-lo)*Math.random();
+const sign=()=>Math.random()<.5?-1:1;
+let seed=157,selectedR=.8;
+function updateExplore(){
+ const dots=makeDots(selectedR,seed),actual=corr(dots),amount=Math.abs(actual);
+ render($('explorePlot'),dots,{line:$('showLine').checked});
+ $('rSlider').value=Math.round(selectedR*100);
+ $('rValue').textContent=valueText(actual);$('rValue').classList.toggle('negative',actual<-.005);
+ const dir=amount<.2?'':actual>0?'positive ':'negative ';
+ const perfect=Math.abs(selectedR)===1;
+ $('rLabel').textContent=perfect?'Perfect '+(actual>0?'positive':'negative')+' correlation':amount<.2?'Little or no linear correlation':category(actual)+' '+dir+'correlation';
+ const direction=actual>0?'increases':'decreases';
+ if(perfect){$('plainMeaning').textContent=`Whenever X increases, Y ${direction} — every single time.`}
+ else if(amount>=.8){$('plainMeaning').textContent=`As X increases, Y ${direction} in a very consistent pattern, though not perfectly.`}
+ else if(amount>=.5){$('plainMeaning').textContent=`As X increases, Y generally ${direction}, but there is noticeable scatter.`}
+ else if(amount>=.2){$('plainMeaning').textContent=`Y has a slight tendency to ${actual>0?'increase':'decrease'} as X increases, but there are many exceptions.`}
+ else{$('plainMeaning').textContent='There is little or no clear straight-line pattern between X and Y.'}
+ let explain;
+ if(perfect){explain='<strong>Perfect straight-line pattern.</strong> Every dot lies exactly on a straight line. '+(actual>0?'When X increases, Y always increases.':'When X increases, Y always decreases.')}
+ else if(amount<.2){explain='<strong>Near zero.</strong> The points look scattered instead of following a straight line. A curved relationship could still exist.'}
+ else{explain=`<strong>${actual>0?'Upward':'Downward'} direction.</strong> ${amount>=.8?'The dots stick quite closely to a straight line, but not exactly.':amount>=.5?'The dots roughly follow a line, with some spread.':'The dots are scattered, so the straight-line pattern is faint.'}`}
+ $('interpret').innerHTML=explain;
+ $('strengthFill').style.width=(amount*100).toFixed(0)+'%';
+ render($('predictionPlot'),dots,{grid:false});
+ $('predictionValue').textContent='Current r: '+valueText(actual);
+ $('predictionPlot').setAttribute('aria-label','Preview scatterplot with correlation '+valueText(actual));
+ document.querySelectorAll('[data-r]').forEach(b=>{const on=+b.dataset.r===Math.round(selectedR*100);b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
+ $('explorePlot').setAttribute('aria-label',`Scatterplot with Pearson correlation ${valueText(actual)}, ${$('rLabel').textContent.toLowerCase()}`);
+}
+function setR(x){selectedR=clamp(Number(x)/100,-1,1);updateExplore();maybeCompletePrediction()}
+$('rSlider').addEventListener('input',e=>setR(e.target.value));
+document.querySelectorAll('[data-r]').forEach(b=>b.addEventListener('click',()=>setR(b.dataset.r)));
+$('showLine').addEventListener('change',updateExplore);
+$('newDots').addEventListener('click',()=>{seed+=1117;updateExplore()});
+
+// Short prediction -> test -> explanation cycle, without introducing a fourth tab.
+const predictions=[
+ {from:.8,to:-.8,answer:'same',why:'Both values are 0.80 away from zero. They have the same strength; only their direction changes.'},
+ {from:.8,to:.3,answer:'weaker',why:'+0.30 is closer to zero than +0.80. The straight-line pattern becomes weaker.'},
+ {from:-.3,to:-.9,answer:'stronger',why:'−0.90 is farther from zero than −0.30. The downward pattern becomes stronger.'},
+ {from:-.7,to:.7,answer:'same',why:'−0.70 and +0.70 are equally far from zero, so their strengths are equal.'}
+];
+let predictionIndex=0,predictionChoice=null,predictionTested=false;
+function showPrediction(){
+ const p=predictions[predictionIndex];predictionChoice=null;predictionTested=false;
+ $('predictionQuestion').textContent=`If r changes from ${valueText(p.from)} to ${valueText(p.to)}, what happens to the strength of the relationship?`;
+ document.querySelectorAll('[data-predict]').forEach(b=>{b.classList.remove('picked');b.disabled=false;b.setAttribute('aria-pressed','false')});
+ $('predictionInstruction').textContent='Choose your prediction first, then test the change on the graph.';
+ $('testPrediction').disabled=true;$('predictionFeedback').hidden=true;
+ setR(Math.round(p.from*100));
+}
+function maybeCompletePrediction(){
+ const p=predictions[predictionIndex];
+ if(predictionChoice===null||predictionTested||Math.abs(selectedR-p.to)>.011)return;
+ predictionTested=true;const yes=predictionChoice===p.answer;
+ const f=$('predictionFeedback');f.hidden=false;f.className='feedback '+(yes?'good':'try');
+ f.textContent=(yes?'Exactly! ':'Good thinking — now you can see it. ')+p.why;
+ $('predictionInstruction').textContent='Notice the direction of the slope and how tightly the dots follow a line.';
+ $('testPrediction').disabled=true;
+}
+document.querySelectorAll('[data-predict]').forEach(b=>b.addEventListener('click',()=>{
+ if(predictionTested)return;predictionChoice=b.dataset.predict;
+ document.querySelectorAll('[data-predict]').forEach(el=>{el.classList.toggle('picked',el===b);el.setAttribute('aria-pressed',el===b?'true':'false')});
+ $('predictionInstruction').textContent=`Now move the main slider to ${valueText(predictions[predictionIndex].to)} to test your prediction, or use the button.`;
+ $('testPrediction').disabled=false;maybeCompletePrediction();
+}));
+$('testPrediction').addEventListener('click',()=>setR(Math.round(predictions[predictionIndex].to*100)));
+$('newPrediction').addEventListener('click',()=>{predictionIndex=(predictionIndex+1)%predictions.length;showPrediction()});
+
+function setMode(next){
+ for(const t of ['explore','compare','practice']){
+  $(t+'View').hidden=t!==next;$(t+'Tab').classList.toggle('active',t===next);
+  if(t===next)$(t+'Tab').setAttribute('aria-current','page');else $(t+'Tab').removeAttribute('aria-current');
+ }
+ if(next==='compare')startCompare();
+ if(next==='practice')startPractice();
+}
+$('exploreTab').addEventListener('click',()=>setMode('explore'));
+$('compareTab').addEventListener('click',()=>setMode('compare'));
+$('practiceTab').addEventListener('click',()=>setMode('practice'));
+$('goCompare').addEventListener('click',()=>setMode('compare'));
+$('goPractice').addEventListener('click',()=>setMode('practice'));
+$('returnExplore').addEventListener('click',()=>setMode('explore'));
+$('finishExplore').addEventListener('click',()=>setMode('explore'));
+
+function newCompareCases(){
+ const a=pick(.79,.94),b=pick(.76,.94),c=pick(.81,.95);
+ return shuffle([
+  {kind:'pair',goal:'equal',rs:shuffle([-a,a]),q:'Which graph has the stronger linear relationship?'},
+  {kind:'pair',goal:'strong',rs:shuffle([pick(.29,.48),-b]),q:'Which graph has the stronger linear relationship?'},
+  {kind:'triple',goal:'strong',rs:shuffle([-c,pick(.34,.57),pick(-.27,-.08)]),q:'Which graph shows the strongest linear relationship?'},
+  {kind:'triple',goal:'weak',rs:shuffle([pick(.71,.93),pick(-.12,.12),pick(-.67,-.38)]),q:'Which graph shows the weakest linear relationship?'},
+  {kind:'triple',goal:'negative',rs:shuffle([pick(.57,.89),-pick(.50,.83),pick(.12,.35)]),q:'Which graph slopes downward as X increases?'},
+  {kind:'triple',goal:'strong',rs:shuffle([pick(.77,.94),-pick(.23,.44),-pick(.46,.64)]),q:'Which graph has the strongest relationship?'}
+ ]);
+}
+let compareCases=[],compareIndex=0,compareScore=0,compareDone=false;
+function correctCompare(c){
+ if(c.goal==='equal')return 'equal';
+ if(c.goal==='negative')return c.rs.findIndex(r=>r<0);
+ const abs=c.rs.map(Math.abs);return c.goal==='strong'?abs.indexOf(Math.max(...abs)):abs.indexOf(Math.min(...abs));
+}
+function startCompare(){compareCases=newCompareCases();compareIndex=0;compareScore=0;showCompare()}
+function showCompare(){
+ $('comparisonActivity').hidden=false;$('compareEnd').hidden=true;compareDone=false;
+ const c=compareCases[compareIndex];$('compareProgress').textContent=`Comparison ${compareIndex+1} of ${compareCases.length} · ${compareScore} correct`;
+ $('compareQuestion').textContent=c.q;
+ const container=$('compareGrid');container.innerHTML='';container.classList.toggle('pair',c.kind==='pair');
+ $('comparePairAnswers').hidden=c.kind!=='pair';$('comparePairAnswers').innerHTML='';
+ c.rs.forEach((r,i)=>{
+  const b=document.createElement(c.kind==='pair'?'div':'button');b.className='compare-choice';
+  if(c.kind!=='pair')b.type='button';
+  const head=document.createElement('div');head.className='graph-label';
+  head.innerHTML=`<span>Graph ${String.fromCharCode(65+i)}</span><span class="graph-value" hidden></span>`;
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 640 460');s.setAttribute('role','img');s.setAttribute('aria-label',`Scatterplot graph ${String.fromCharCode(65+i)}`);
+  render(s,makeDots(r,1297+compareIndex*907+i*619,21),{grid:false});
+  b.append(head,s);
+  if(c.kind!=='pair')b.addEventListener('click',()=>chooseCompare(i));
+  container.append(b);
+ });
+ if(c.kind==='pair'){
+  ['Graph A','Graph B','Same strength'].forEach((label,i)=>{
+   const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>chooseCompare(i===2?'equal':i));
+   $('comparePairAnswers').appendChild(b);
+  });
+ }
+ $('compareFeedback').hidden=true;$('nextCompare').hidden=true;
+}
+function chooseCompare(choice){
+ if(compareDone)return;compareDone=true;
+ const c=compareCases[compareIndex],right=correctCompare(c),ok=choice===right;
+ if(ok)compareScore++;
+ [...$('compareGrid').children].forEach((b,i)=>{
+  if(c.kind==='triple')b.disabled=true;
+  if((right==='equal'&&c.kind==='pair')||right===i)b.classList.add('correct');
+  else if(i===choice)b.classList.add('incorrect');
+  const v=b.querySelector('.graph-value');v.hidden=false;v.textContent='r = '+valueText(c.rs[i]);
+ });
+ if(c.kind==='pair'){
+  [...$('comparePairAnswers').children].forEach((b,i)=>{b.disabled=true;const key=i===2?'equal':i;if(key===right)b.classList.add('correct');else if(key===choice)b.classList.add('incorrect')});
+ }
+ const f=$('compareFeedback');f.hidden=false;f.className='feedback '+(ok?'good':'try');
+ let explanation;
+ if(c.goal==='equal')explanation=`The two graphs have correlations ${valueText(c.rs[0])} and ${valueText(c.rs[1])}. Their absolute values are equal, so their linear relationships are equally strong. The signs only change direction.`;
+ else if(c.goal==='negative')explanation=`Graph ${String.fromCharCode(65+right)} slopes downward as X increases. Its correlation is negative (${valueText(c.rs[right])}).`;
+ else explanation=`Graph ${String.fromCharCode(65+right)} is ${c.goal==='strong'?'strongest':'weakest'}: the distance of r from zero is ${c.goal==='strong'?'largest':'smallest'}. Negative numbers can be stronger than positive numbers.`;
+ f.textContent=(ok?'Correct! ':'Not quite. ')+explanation;
+ $('compareProgress').textContent=`Comparison ${compareIndex+1} of ${compareCases.length} · ${compareScore} correct`;
+ $('nextCompare').hidden=false;$('nextCompare').textContent=compareIndex===compareCases.length-1?'See my result →':'Next comparison →';
+}
+$('nextCompare').addEventListener('click',()=>{
+ if(compareIndex<compareCases.length-1){compareIndex++;showCompare()}
+ else{$('comparisonActivity').hidden=true;$('compareEnd').hidden=false;$('compareScore').textContent=`${compareScore} / ${compareCases.length}`}
+});
+$('restartCompare').addEventListener('click',startCompare);
+$('againCompare').addEventListener('click',startCompare);
+
+// Fresh questions each session. Six guided questions use the matching tool; three later questions do not.
+function makeQuestion(r,independent=false){
+ r=round2(clamp(r,-.98,.98));
+ const answer=Math.round(r*10)/10;
+ const candidates=[];
+ for(let i=-10;i<=10;i++){
+  const v=i/10;if(Math.abs(v-answer)>=.25-1e-9&&Math.abs(v-answer)<=1.4)candidates.push(v);
+ }
+ const picks=shuffle(candidates).slice(0,3);
+ const opts=shuffle([answer,...picks]);
+ return {r,opts,answer,independent,seed:Math.floor(Math.random()*2147483600)+1};
+}
+function newPracticeQuestions(){
+ const guided=shuffle([
+  makeQuestion(pick(.81,.96)), makeQuestion(-pick(.81,.96)),
+  makeQuestion(pick(.25,.44)), makeQuestion(-pick(.25,.44)),
+  makeQuestion(pick(-.09,.09)),makeQuestion(sign()*pick(.55,.75))
+ ]);
+ const s=sign();
+ const final=shuffle([makeQuestion(s*pick(.79,.95),true),makeQuestion(-s*pick(.40,.71),true),makeQuestion(pick(-.12,.12),true)]);
+ return [...guided,...final];
+}
+let practiceCases=[],practiceIndex=0,practiceScore=0,guidedScore=0,independentScore=0,practiceDone=false;
+const shortText=r=>Math.abs(r)<.001?'0':(r>0?'+':'−')+Math.abs(r).toFixed(1);
+function updateModel(){
+ const q=practiceCases[practiceIndex];if(!q||q.independent)return;
+ const proposed=Number($('modelSlider').value)/100;
+ const dots=makeDots(proposed,q.seed,23);
+ const actual=corr(dots),magnitude=Math.abs(actual);
+ render($('modelPlot'),dots);
+ $('modelR').textContent=valueText(actual);$('modelR').classList.toggle('negative',actual<-.005);
+ $('modelMeaning').textContent=magnitude===1?'Perfect '+(actual>0?'positive':'negative')+' correlation':
+   magnitude<.2?'Little or no linear correlation':category(actual)+' '+(actual>0?'positive':'negative')+' correlation';
+ $('modelPlot').setAttribute('aria-label',`Your adjustable scatterplot: r = ${valueText(actual)}. ${$('modelMeaning').textContent}.`);
+}
+// Move the slider controls below the graph pair, so neither graph gets hidden while working on mobile.
+const practiceGridEl=$('practiceGrid'), practiceWorkspace=document.createElement('div');
+practiceWorkspace.className='practice-workspace';
+practiceGridEl.before(practiceWorkspace);practiceWorkspace.appendChild(practiceGridEl);
+const practiceControlsCard=document.createElement('div');
+practiceControlsCard.className='panel practice-controls-card';practiceControlsCard.id='practiceControlsCard';
+practiceControlsCard.appendChild($('practiceModelCard').querySelector('.practice-helper'));
+practiceWorkspace.appendChild(practiceControlsCard);
+$('modelSlider').addEventListener('input',()=>{updateModel();$('matchStatus').hidden=true});
+$('checkMatch').addEventListener('click',()=>{
+ const q=practiceCases[practiceIndex];if(!q||q.independent||practiceDone)return;
+ const estimate=Number($('modelSlider').value)/100,delta=Math.abs(estimate-q.r);
+ const msg=delta<=.10?'Great match! Your pattern is very close to the question graph.':delta<=.23?'Getting closer. Compare how tightly the dots follow an upward or downward line.':'Not quite a match yet. First check the direction, then how spread out the dots are.';
+ $('matchStatus').hidden=false;
+ $('matchStatus').textContent=`Your graph: r = ${valueText(estimate)}. ${msg} You can adjust again or choose an answer.`;
+});
+function startPractice(){practiceCases=newPracticeQuestions();practiceIndex=0;practiceScore=0;guidedScore=0;independentScore=0;showPractice()}
+function showPractice(){
+ $('practiceActivity').hidden=false;$('practiceEnd').hidden=true;practiceDone=false;
+ const q=practiceCases[practiceIndex],ind=q.independent;
+ $('practiceProgress').textContent=ind?`Independent question ${practiceIndex-5} of 3 · No matching slider`:`Guided question ${practiceIndex+1} of 6 · Matching slider available`;
+ $('practiceHeading').textContent=ind?'Final challenge: estimate r on your own':'Which value of r fits best?';
+ $('practiceIntro').textContent=ind?'Now try without the matching tool. Look for direction and how tightly the dots line up.':'Look at the question graph. If you are unsure, use the slider to create a similar pattern.';
+ $('practiceTargetHeading').textContent=ind?'Question graph':'1 · Graph to match';
+ $('answerHeading').textContent=ind?'Choose the closest correlation':'3 · Choose the closest answer';
+ $('answerNote').textContent=ind?'No slider this time. Use what you learned to choose the closest value.':'Use your matching graph to work out the answer, or estimate directly.';
+ $('practiceModelCard').hidden=ind;$('practiceControlsCard').hidden=ind;$('practiceTarget').classList.toggle('independent',ind);
+ $('practiceGrid').classList.toggle('solo',ind);
+ const p=$('practicePlot');render(p,makeDots(q.r,q.seed,23));p.setAttribute('aria-label','Question scatterplot with an unknown correlation');
+ if(!ind){$('modelSlider').value='0';updateModel();$('matchStatus').hidden=true;$('checkMatch').disabled=false;}
+ const div=$('practiceAnswers');div.innerHTML='';
+ q.opts.forEach((v,i)=>{const b=document.createElement('button');b.className='choice';b.type='button';b.textContent=shortText(v);b.addEventListener('click',()=>choosePractice(i));div.appendChild(b)});
+ $('practiceFeedback').hidden=true;$('nextPractice').hidden=true;
+}
+function explainCorrelation(r){
+ const a=Math.abs(r),d=r>=0?'upward':'downward';
+ if(a<.15)return 'The points show little or no straight-line trend, so r is near zero.';
+ const strength=a>=.8?'a tight':a>=.5?'a noticeable':'a faint';
+ return `The dots show ${strength} ${d} pattern, so r is ${r>=0?'positive':'negative'}${a>=.8?' and strong':a>=.5?' and moderate':' and weak'}.`;
+}
+function choosePractice(index){
+ if(practiceDone)return;practiceDone=true;
+ const q=practiceCases[practiceIndex],right=q.opts.findIndex(v=>Math.abs(v-q.answer)<.001),ok=index===right;
+ if(ok){practiceScore++;if(q.independent)independentScore++;else guidedScore++}
+ [...$('practiceAnswers').children].forEach((b,i)=>{b.disabled=true;if(i===right)b.classList.add('correct');else if(i===index)b.classList.add('incorrect')});
+ $('checkMatch').disabled=true;
+ $('practiceFeedback').hidden=false;$('practiceFeedback').className='feedback '+(ok?'good':'try');
+ $('practiceFeedback').textContent=(ok?'Correct! ':'Good try. ')+explainCorrelation(q.r)+` The actual correlation is ${valueText(q.r)}, making ${shortText(q.answer)} the closest choice.`;
+ $('nextPractice').hidden=false;
+ $('nextPractice').textContent=practiceIndex===practiceCases.length-1?'See my results →':practiceIndex===5?'Start independent challenge →':'Next question →';
+}
+$('nextPractice').addEventListener('click',()=>{
+ if(practiceIndex<practiceCases.length-1){practiceIndex++;showPractice();$('practiceHeading').scrollIntoView({behavior:'instant',block:'start'})}
+ else{
+  $('practiceActivity').hidden=true;$('practiceEnd').hidden=false;
+  $('practiceScore').textContent=`${practiceScore} / ${practiceCases.length}`;
+  $('guidedScore').textContent=`Guided: ${guidedScore} / 6`;
+  $('independentScore').textContent=`Independent: ${independentScore} / 3`;
+  $('practiceTitle').textContent=independentScore===3?'You can recognize correlations on your own!':independentScore===2?'You are reading the patterns well!':'Keep exploring the patterns!';
+  $('practiceSummary').textContent='The guided questions let you work with a matching graph. Your independent score shows how well you recognized the patterns without it.';
+  $('practiceEnd').scrollIntoView({behavior:'instant',block:'start'});
+ }
+});
+$('againPractice').addEventListener('click',startPractice);
+showPrediction();updateExplore();
+})();
+</script>
+</body>
+</html>
