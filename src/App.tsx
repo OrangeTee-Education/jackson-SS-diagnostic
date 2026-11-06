@@ -5,12 +5,14 @@ import StudentHome from "./pages/StudentHome";
 import Administer from "./pages/Administer";
 import Results from "./pages/Results";
 import Compare from "./pages/Compare";
+import StandaloneApps from "./pages/StandaloneApps";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/stand-alone-apps" element={<StandaloneApps />} />
         <Route path="/social-studies" element={<StudentGate />} />
         <Route path="/social-studies/students/:studentId" element={<StudentHome />} />
         <Route path="/social-studies/students/:studentId/new" element={<Administer />} />

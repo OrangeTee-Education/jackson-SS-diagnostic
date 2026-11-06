@@ -15,6 +15,12 @@ const APPS: AppCard[] = [
     path: "/social-studies",
     status: "live",
   },
+  {
+    title: "Stand-alone Apps",
+    description: "Self-contained interactive apps, such as the Correlation Lab. Each one opens on its own page.",
+    path: "/stand-alone-apps",
+    status: "live",
+  },
 ];
 
 export default function Landing() {
