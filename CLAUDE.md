@@ -37,6 +37,16 @@ Always tell the user, unprompted, whether a change needs a deploy to show up
 on the live site. Documentation-only commits to `main` should include
 `[skip netlify]` in the commit message so they don't trigger a build.
 
+**Merging through pull requests (standing rule, Matt 2026-11-06):** merge
+every branch into `main` by opening a pull request and merging it (GitHub
+tools), not by merging locally and pushing, and only on Matt's explicit
+go-ahead. The repo has "Automatically delete head branches" on, so GitHub
+deletes the branch when its PR merges (cloud sessions can push but cannot
+delete branches). Nothing is lost: the commits stay in `main`, and the merged
+PR's page has a "Restore branch" button. Merging a PR into `main` starts a
+Netlify build (credits) unless the merge commit message contains
+`[skip netlify]`.
+
 ## Local dev
 
 ```
