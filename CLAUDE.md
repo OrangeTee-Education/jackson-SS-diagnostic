@@ -47,6 +47,20 @@ PR's page has a "Restore branch" button. Merging a PR into `main` starts a
 Netlify build (credits) unless the merge commit message contains
 `[skip netlify]`.
 
+## Branch names say what the branch is (standing rule, Matt 2026-11-17)
+
+Give every branch a short, readable name that says what is on it, so Matt can
+tell the branches apart on GitHub's Branches page. Lowercase, words joined by
+hyphens; start with the app or page's name, then what the work is:
+
+- `perspective-lab-v0.5`, `ss-diagnostic-scoring-fix`, `landing-page-links`, `docs-claude-md`
+
+This overrides the random session-assigned names (`claude/<adjective>-<name>-<code>`):
+if the session was given one, create and push a descriptive branch instead. If work
+already sits on a random name, push the same commit under a descriptive name, update any
+references (PRs, docs), and ask Matt to delete the old name, since cloud
+sessions cannot delete branches.
+
 ## Local dev
 
 ```
